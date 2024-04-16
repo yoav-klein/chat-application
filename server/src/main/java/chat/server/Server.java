@@ -3,9 +3,94 @@
  */
 package chat.server;
 
+import java.nio.channels.Selector;
+import java.nio.channels.SelectionKey;
+
+import java.nio.channels.ServerSocketChannel;
+import java.nio.channels.SocketChannel;
+
+import java.nio.charset.Charset; 
+import java.nio.ByteBuffer;
+import java.net.InetSocketAddress;
+
+import java.util.Set;
+import java.util.Iterator;
+
+import java.io.IOException;
 
 public class Server {
+    private static final int PORT = 8080;
+    private static ByteBuffer buffer = ByteBuffer.allocate(1024);
+
+    private static void handleClient(SocketChannel client) throws IOException {
+        Charset charset = Charset.forName("UTF-8");
+
+        buffer.clear();
+        int readBytes = client.read(buffer);
+        if(-1 == readBytes) {
+            client.close();
+            return;
+        }
+
+        buffer.flip(); // set position back to 0 before decode
+        String received = charset.decode(buffer).toString();
+        System.out.println("received: " + received);        
+        
+        ByteBuffer outBuffer = charset.encode("I got you man");
+
+        // write to socket
+        client.write(outBuffer);
+        
+    }
+
+    private static void registerClient(Selector selector, ServerSocketChannel serverSocket) throws IOException {
+        SocketChannel client = serverSocket.accept(); // accept the connection from client
+        client.configureBlocking(false);
+        client.register(selector, SelectionKey.OP_READ); // register, this time with OP_READ because this socket is for reading, not receiving connections
+    }
+
+    private static void start() throws IOException {
+        // first, we create a selectable channel
+        ServerSocketChannel serverSocket = ServerSocketChannel.open(); 
+        serverSocket.bind(new InetSocketAddress(PORT));
+        serverSocket.configureBlocking(false); // must be non-blocking to allow selecting
+
+        // now, we create a Select instance
+        Selector selector = Selector.open();
+
+        // register the channel with the selector. our interest is "accept", as 
+        // this socket will accept connections
+        serverSocket.register(selector, SelectionKey.OP_ACCEPT); 
+
+        // now we block on "select()" until a channel is ready for communication
+        while(true) {
+            selector.select();
+            
+            Set<SelectionKey> selectedKeys = selector.selectedKeys(); 
+            Iterator<SelectionKey> iter = selectedKeys.iterator();
+
+            while(iter.hasNext()) {
+                SelectionKey curr = iter.next();
+                iter.remove();
+
+                if(curr.isAcceptable()) {
+                    registerClient(selector, serverSocket);
+                }
+
+                if(curr.isReadable()) {
+                    handleClient((SocketChannel) curr.channel());
+                }
+            }
+
+
+        }
+    }
+
     public static void main(String[] args) {
-        System.out.println("This is Server");
+        try {
+            start();
+        } catch(IOException e) {
+            System.err.println(e);
+        }
     }
 }
