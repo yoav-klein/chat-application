@@ -13,6 +13,8 @@ import java.net.InetSocketAddress;
 
 import java.util.Set;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.HashMap;
 
 import java.io.IOException;
 
@@ -23,153 +25,46 @@ import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import chat.common.command.*;
 import chat.common.exception.*;
 
+
 public class Server {
-    private static final int PORT = 8080;
-    private static final Charset charset = Charset.forName("UTF-8");
-    private static ByteBuffer buffer = ByteBuffer.allocate(1024);
 
-    private static String readFromClient(SocketChannel client) throws IOException {
-        
-        buffer.clear();
-        int readBytes = client.read(buffer);
-        if(-1 == readBytes) {
-            System.out.println("DEBUG: client.read returned -1");
-            throw new IOException("client closed connection");
-        }
+    private static Map<Integer, User> users = new HashMap<Integer, User>();
 
-        buffer.flip(); // set position back to 0 before decode
-        String commandString = charset.decode(buffer).toString();
-
-        return commandString;
-    }
-
-    
-    private static void writeToClient(SocketChannel client, String message) throws IOException {
-        
-        ByteBuffer outBuffer = charset.encode(message);
-
-        // write to socket
-        client.write(outBuffer);
-        
-    }
-
-    private static void getNewClient(SelectionKey selectionKey, String command) throws BadRequestException, IOException {
+    private static void registerUser(ClientMessage message) throws BadRequestException, IOException {
         ObjectMapper mapper = new ObjectMapper();
         ClientHelloCommand clientHello;
         try {
-            clientHello = mapper.readValue(command, ClientHelloCommand.class);
+            clientHello = mapper.readValue(message.getMessage(), ClientHelloCommand.class);
         } catch(UnrecognizedPropertyException e) {
             throw new BadRequestException("Client hello message malformed");
         }
-       
         System.out.println("Creating new user: " + clientHello.getUserName());
         User newUser = new User(clientHello.getUserName());
-        selectionKey.attach(newUser);
-
-        writeToClient((SocketChannel)selectionKey.channel(), "OK: New User Received");
+        users.put(message.getUid(), newUser);
+       
     }
 
-    private static void handleClient(SelectionKey selectionKey) {
-        SocketChannel client = (SocketChannel)selectionKey.channel();
-        String command;
-        try {
-            command = readFromClient(client);
-        } catch(java.net.SocketException e) {
-            System.out.println("Client closed unexpectedly");
-            selectionKey.cancel();
-            return;
-        }
-        catch(IOException e) {
-            if(e.getMessage().contains("closed")) {
-                System.out.println("INFO: client closed connection");
-                try {
-                    client.close();
-                } catch(IOException e1) {
-                    System.err.println("FATAL: couldn't close connection");
-                    System.err.println(e1);
-                }
-                selectionKey.cancel();
-                return;
-            }
-            System.err.println("ERROR: reading from client");
-            System.err.println(e);
-            return;
-        }
-        
-        // if this is a new user
-        if(null == selectionKey.attachment()) {
-            System.out.println("INFO: new user");
-            try {
-                getNewClient(selectionKey, command);
-
-            } catch(BadRequestException e) {
-                System.err.println("new client bad request");
-            } catch(IOException e) {
-                System.err.println("IOException");
-            }
-            
-            return;
-        }
-
-        System.out.println("Existing user: " + ((User)selectionKey.attachment()).getName());
-
-        // switch case on the command type
-        // create a suitable Command instance
-        // execute the command
-        // return reponse to client
-
-        System.out.println("received: " + command);        
-        
-        
-    }
-
-    private static void registerClient(Selector selector, ServerSocketChannel serverSocket) throws IOException {
-        SocketChannel client = serverSocket.accept(); // accept the connection from client
-        client.configureBlocking(false);
-        client.register(selector, SelectionKey.OP_READ); // register, this time with OP_READ because this socket is for reading, not receiving connections
-    }
-
-    private static void start() throws IOException {
-        // first, we create a selectable channel
-        ServerSocketChannel serverSocket = ServerSocketChannel.open(); 
-        serverSocket.bind(new InetSocketAddress(PORT));
-        serverSocket.configureBlocking(false); // must be non-blocking to allow selecting
-
-        // now, we create a Select instance
-        Selector selector = Selector.open();
-
-        // register the channel with the selector. our interest is "accept", as 
-        // this socket will accept connections
-        serverSocket.register(selector, SelectionKey.OP_ACCEPT); 
-
-        // now we block on "select()" until a channel is ready for communication
+    private static void start(Communication comm) throws IOException {
         while(true) {
-            System.out.println("Number of connected clients: " + selector.keys().size());
-            selector.select();
-            
-            Set<SelectionKey> selectedKeys = selector.selectedKeys();
-            Iterator<SelectionKey> iter = selectedKeys.iterator();
+            ClientMessage message = comm.run();
+            if(!users.containsKey(message.getUid())) { // new user
+                try {
+                    registerUser(message);
 
-            while(iter.hasNext()) {
-                SelectionKey curr = iter.next();
-                iter.remove();
-
-                if(curr.isAcceptable()) {
-                    registerClient(selector, serverSocket);
+                } catch(BadRequestException e) {
+                    
                 }
-
-                if(curr.isReadable()) {
-                    handleClient(curr);
-                }
+                // return OK to user
             }
 
-
         }
+
     }
 
     public static void main(String[] args) {
         try {
-            start();
+            Communication tcp = new Communication(8080);
+            start(tcp);
         } catch(IOException e) {
             System.err.println(e);
         }
