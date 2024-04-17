@@ -69,7 +69,7 @@ public class Client {
         try {
             SocketChannel socket = initTCPConnection();
             initConnection(socket);
-            //socket.close();
+            socket.close();
 
         } catch(IOException e) {
             System.err.println("Error");
