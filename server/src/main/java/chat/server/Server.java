@@ -3,14 +3,6 @@
  */
 package chat.server;
 
-import java.nio.channels.Selector;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.ServerSocketChannel;
-import java.nio.channels.SocketChannel;
-import java.nio.charset.Charset; 
-import java.nio.ByteBuffer;
-import java.net.InetSocketAddress;
-
 import java.util.Set;
 import java.util.Iterator;
 import java.util.Map;
@@ -46,16 +38,24 @@ public class Server {
 
     private static void start(Communication comm) throws IOException {
         while(true) {
-            ClientMessage message = comm.run();
-            if(!users.containsKey(message.getUid())) { // new user
+            ClientMessage message;
+            try {
+                message = comm.run();
+                int uid = message.getUid();
+                if(!users.containsKey(uid)) { // new user
                 try {
                     registerUser(message);
+                    comm.sendMessageToClient(new ClientMessage(uid, "OK: Got you"));
 
                 } catch(BadRequestException e) {
-                    
+
                 }
                 // return OK to user
             }
+            } catch(ClosedConnectionException e) {
+                int uid = e.getUid();
+                users.remove(uid);
+            } 
 
         }
 

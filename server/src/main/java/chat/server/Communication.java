@@ -52,13 +52,11 @@ class Communication {
     }
 
     
-    private String readFromClient(SocketChannel client) throws IOException {
-        
+    private String readFromClient(SocketChannel client) throws ClosedConnectionException, IOException {
         buffer.clear();
         int readBytes = client.read(buffer);
         if(-1 == readBytes) {
-            System.out.println("DEBUG: client.read returned -1");
-            throw new IOException("client closed connection");
+            throw new ClosedConnectionException();
         }
 
         buffer.flip(); // set position back to 0 before decode
@@ -69,15 +67,11 @@ class Communication {
 
     
     private void writeToClient(SocketChannel client, String message) throws IOException {
-        
-        ByteBuffer outBuffer = charset.encode(message);
-
         // write to socket
-        client.write(outBuffer);
-        
+        client.write(charset.encode(message));
     }
 
-    private String readClientRequest(SelectionKey selectionKey) {
+    private String readClientRequest(SelectionKey selectionKey) throws IOException, ClosedConnectionException {
         SocketChannel client = (SocketChannel)selectionKey.channel();
         /* CommClient commClient = (CommClient)selectionKey.attachment(); */
 
@@ -86,23 +80,11 @@ class Communication {
             command = readFromClient(client);
         } catch(java.net.SocketException e) {
             System.out.println("Client closed unexpectedly");
-            selectionKey.cancel();
-            return "closed";
+            throw new ClosedConnectionException();
         } catch(IOException e) {
-            if(e.getMessage().contains("closed")) {
-                System.out.println("INFO: client closed connection");
-                try {
-                    client.close();
-                } catch(IOException e1) {
-                    System.err.println("FATAL: couldn't close connection");
-                    System.err.println(e1);
-                }
-                selectionKey.cancel();
-                return "closed";
-            }
             System.err.println("ERROR: reading from client");
             System.err.println(e);
-            return null;
+            throw e;
         }
             
         return command;
@@ -115,12 +97,13 @@ class Communication {
         client.configureBlocking(false);
         SelectionKey clientKey = client.register(selector, SelectionKey.OP_READ); // register, this time with OP_READ because this socket is for reading, not receiving connections
         
-        CommClient newClient = new CommClient(uid++, clientKey);
+        CommClient newClient = new CommClient(uid, clientKey);
         clients.put(uid, newClient);
+        uid++;
         clientKey.attach(newClient);
     }
 
-    ClientMessage run() throws IOException {
+    ClientMessage run() throws ClosedConnectionException, IOException  {
         while(true) {
             
             selector.select();
@@ -137,9 +120,21 @@ class Communication {
                 }
 
                 if(curr.isReadable()) {
-                    String request = readClientRequest(curr);
-                    if(request.equals("closed")) {
-                        System.out.println("closed connection");
+                    String request;
+                    try {
+                        request = readClientRequest(curr);
+                    } catch(ClosedConnectionException e) {
+                        CommClient closedClient = (CommClient)curr.attachment();
+                        try {
+                            curr.channel().close();
+                        } catch(IOException e1) {
+                            System.err.println("Couldn't close channel");
+                            System.err.println(e1);
+                        }
+                        curr.cancel();
+                        throw new ClosedConnectionException(closedClient.getUid());
+                    } catch(IOException e) {
+                        System.err.println(e);
                         continue;
                     }
 
@@ -152,7 +147,16 @@ class Communication {
                 }
             }
 
-
         }
+    }
+
+    void sendMessageToClient(ClientMessage message) throws IOException {
+        CommClient client = clients.get(message.getUid());
+        if(null == client) {
+            throw IOException("Couldn't find client socket");
+        }
+        SocketChannel socket = (SocketChannel)client.getKey().channel();
+
+        writeToClient(socket, message.getMessage());
     }
 }
