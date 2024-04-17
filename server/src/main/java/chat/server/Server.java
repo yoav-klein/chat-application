@@ -22,6 +22,10 @@ public class Server {
 
     private static Map<Integer, User> users = new HashMap<Integer, User>();
 
+    private static void handleRequest(ClientMessage message, Communication comm) {
+        // switch case type of request
+    }
+
     private static void registerUser(ClientMessage message) throws BadRequestException, IOException {
         ObjectMapper mapper = new ObjectMapper();
         ClientHelloCommand clientHello;
@@ -42,23 +46,25 @@ public class Server {
             try {
                 message = comm.run();
                 int uid = message.getUid();
+
                 if(!users.containsKey(uid)) { // new user
-                try {
-                    registerUser(message);
-                    comm.sendMessageToClient(new ClientMessage(uid, "OK: Got you"));
+                    try {
+                        registerUser(message);
+                        comm.sendMessageToClient(new ClientMessage(uid, "{\"status\":\"OK\"}"));
 
-                } catch(BadRequestException e) {
-
+                    } catch(BadRequestException e) {
+                        
+                    }
                 }
-                // return OK to user
-            }
+                ClientMessage response = handleRequest(message, comm);
+                comm.sendMessageToClient(response);
+                
+
             } catch(ClosedConnectionException e) {
                 int uid = e.getUid();
                 users.remove(uid);
             } 
-
         }
-
     }
 
     public static void main(String[] args) {

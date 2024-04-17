@@ -51,7 +51,6 @@ class Communication {
         this.selector = selector;
     }
 
-    
     private String readFromClient(SocketChannel client) throws ClosedConnectionException, IOException {
         buffer.clear();
         int readBytes = client.read(buffer);
@@ -90,7 +89,6 @@ class Communication {
         return command;
         
     }
-
     
     private void registerClient(Selector selector, ServerSocketChannel serverSocket) throws IOException {
         SocketChannel client = serverSocket.accept(); // accept the connection from client
@@ -153,7 +151,7 @@ class Communication {
     void sendMessageToClient(ClientMessage message) throws IOException {
         CommClient client = clients.get(message.getUid());
         if(null == client) {
-            throw IOException("Couldn't find client socket");
+            throw new IOException("Couldn't find client socket");
         }
         SocketChannel socket = (SocketChannel)client.getKey().channel();
 
