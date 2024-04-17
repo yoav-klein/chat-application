@@ -18,12 +18,31 @@ import java.util.Iterator;
 
 import java.io.IOException;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
+
 public class Server {
     private static final int PORT = 8080;
     private static ByteBuffer buffer = ByteBuffer.allocate(1024);
 
-    private static void handleClient(SocketChannel client) throws IOException {
+    private static void getNewClient(SelectionKey selectionKey, String command) throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode actualObj = mapper.readTree(command);
+        String opcode = actualObj.get("opcode").textValue();
+
+        if(!opcode.equals("ClientHello")) {
+            System.out.println("ERROR: should be ClientHello");
+        }
+
+        String userName = actualObj.get("userName").textValue();
+        System.out.println("Creating new user");
+        User newUser = new User(userName);
+        selectionKey.attach(newUser);
+    }
+
+    private static void handleClient(SelectionKey selectionKey) throws IOException {
         Charset charset = Charset.forName("UTF-8");
+        SocketChannel client = (SocketChannel)selectionKey.channel();
 
         buffer.clear();
         int readBytes = client.read(buffer);
@@ -33,8 +52,23 @@ public class Server {
         }
 
         buffer.flip(); // set position back to 0 before decode
-        String received = charset.decode(buffer).toString();
-        System.out.println("received: " + received);        
+        String commandString = charset.decode(buffer).toString();
+
+        // if this is a new user
+        if(null == selectionKey.attachment()) {
+            System.out.println("INFO: new user");
+            getNewClient(selectionKey, commandString);
+            return;
+        }
+
+        System.out.println("Existing user: " + ((User)selectionKey.attachment()).getName());
+
+        // switch case on the command type
+        // create a suitable Command instance
+        // execute the command
+        // return reponse to client
+
+        System.out.println("received: " + commandString);        
         
         ByteBuffer outBuffer = charset.encode("I got you man");
 
@@ -78,7 +112,7 @@ public class Server {
                 }
 
                 if(curr.isReadable()) {
-                    handleClient((SocketChannel) curr.channel());
+                    handleClient(curr);
                 }
             }
 

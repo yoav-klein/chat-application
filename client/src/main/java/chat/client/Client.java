@@ -18,16 +18,23 @@ public class Client {
             socketChannel.connect(new InetSocketAddress("127.0.0.1", 8080));
             
             ByteBuffer inbuffer = ByteBuffer.allocate(1024);
+            ByteBuffer outbuffer;
+
             Charset charset = Charset.forName("UTF-8"); 
             
+            String helloMessage = "{\"opcode\":\"ClientHello\",\"userName\":\"Yoav\"}";
+            outbuffer = charset.encode(helloMessage);
+            socketChannel.write(outbuffer);
+
+
             while(true) {
                 
                 // read message from console
                 String message = stdin.readLine();
                 // encode message to ByteBuffer
-                ByteBuffer buffer = charset.encode(message);
+                outbuffer = charset.encode(message);
                 // write to socket
-                socketChannel.write(buffer);
+                socketChannel.write(outbuffer);
                 
                 inbuffer.clear();
                 // read from socket to ByteBuffer
