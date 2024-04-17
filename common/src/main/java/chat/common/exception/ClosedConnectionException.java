@@ -1,5 +1,5 @@
 
-package chat.server;
+package chat.common.exception;
 
 public class ClosedConnectionException extends Exception {
     private int uid;

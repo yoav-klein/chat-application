@@ -11,13 +11,16 @@ import java.net.InetSocketAddress;
 import java.util.*;
 import java.io.*;
 
+import chat.common.util.*;
+import chat.common.exception.ClosedConnectionException;
 
 class Communication {
     private static final Charset charset = Charset.forName("UTF-8");
     private static Selector selector;
+    private TCPCommunication tcp = new TCPCommunication();
     
     private ServerSocketChannel serverSocket;
-    private static ByteBuffer buffer = ByteBuffer.allocate(1024);
+    /* private static ByteBuffer buffer = ByteBuffer.allocate(1024); */
     static int uid = 0;
 
     Map<Integer, CommClient> clients = new HashMap<Integer, CommClient>();
@@ -50,44 +53,19 @@ class Communication {
         serverSocket.register(selector, SelectionKey.OP_ACCEPT);
         this.selector = selector;
     }
-
-    private String readFromClient(SocketChannel client) throws ClosedConnectionException, IOException {
-        buffer.clear();
-        int readBytes = client.read(buffer);
-        if(-1 == readBytes) {
-            throw new ClosedConnectionException();
-        }
-
-        buffer.flip(); // set position back to 0 before decode
-        String commandString = charset.decode(buffer).toString();
-
-        return commandString;
-    }
-
     
-    private void writeToClient(SocketChannel client, String message) throws IOException {
-        // write to socket
-        client.write(charset.encode(message));
-    }
-
     private String readClientRequest(SelectionKey selectionKey) throws IOException, ClosedConnectionException {
         SocketChannel client = (SocketChannel)selectionKey.channel();
         /* CommClient commClient = (CommClient)selectionKey.attachment(); */
 
         String command;
         try {
-            command = readFromClient(client);
+            command = tcp.readFromChannel(client);
         } catch(java.net.SocketException e) {
             System.out.println("Client closed unexpectedly");
             throw new ClosedConnectionException();
-        } catch(IOException e) {
-            System.err.println("ERROR: reading from client");
-            System.err.println(e);
-            throw e;
-        }
-            
+        }   
         return command;
-        
     }
     
     private void registerClient(Selector selector, ServerSocketChannel serverSocket) throws IOException {
@@ -138,13 +116,12 @@ class Communication {
 
                     CommClient client = (CommClient)curr.attachment();
 
-                    if(request == null) {
+                    if(request == null) { // TODO: what to do in this case?
                         continue;
                     }
                     return new ClientMessage(client.getUid(), request);
                 }
             }
-
         }
     }
 
@@ -155,6 +132,6 @@ class Communication {
         }
         SocketChannel socket = (SocketChannel)client.getKey().channel();
 
-        writeToClient(socket, message.getMessage());
+        tcp.writeToChannel(socket, message.getMessage());
     }
 }

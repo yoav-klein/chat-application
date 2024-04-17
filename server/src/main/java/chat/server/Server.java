@@ -22,9 +22,9 @@ public class Server {
 
     private static Map<Integer, User> users = new HashMap<Integer, User>();
 
-    private static void handleRequest(ClientMessage message, Communication comm) {
+    /* private static ClientMessage handleRequest(ClientMessage message, Communication comm) {
         // switch case type of request
-    }
+    } */
 
     private static void registerUser(ClientMessage message) throws BadRequestException, IOException {
         ObjectMapper mapper = new ObjectMapper();
@@ -56,8 +56,8 @@ public class Server {
                         
                     }
                 }
-                ClientMessage response = handleRequest(message, comm);
-                comm.sendMessageToClient(response);
+                // ClientMessage response = handleRequest(message, comm);
+                // comm.sendMessageToClient(response);
                 
 
             } catch(ClosedConnectionException e) {
