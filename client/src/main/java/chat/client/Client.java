@@ -8,54 +8,72 @@ import java.nio.charset.Charset;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
+import chat.common.command.*;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
+
+
 public class Client {
-    public static void main(String[] args) {
-        try (
-            BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
-            SocketChannel socketChannel = SocketChannel.open();
-        ){
-            
-            socketChannel.connect(new InetSocketAddress("127.0.0.1", 8080));
-            
-            ByteBuffer inbuffer = ByteBuffer.allocate(1024);
-            ByteBuffer outbuffer;
+    private static ByteBuffer inbuffer = ByteBuffer.allocate(1024);
+    private static final Charset charset = Charset.forName("UTF-8"); 
+    
+    private static String readFromServer(SocketChannel server) throws IOException {
+        
+        inbuffer.clear();
+        int readBytes = server.read(inbuffer);
+        if(-1 == readBytes) {
+            server.close();
+            return null;
+        }
 
-            Charset charset = Charset.forName("UTF-8"); 
-            
-            String helloMessage = "{\"opcode\":\"ClientHello\",\"userName\":\"Yoav\"}";
-            outbuffer = charset.encode(helloMessage);
-            socketChannel.write(outbuffer);
+        inbuffer.flip(); // set position back to 0 before decode
+        String message = charset.decode(inbuffer).toString();
 
+        return message;
+    }
 
-            while(true) {
-                
-                // read message from console
-                String message = stdin.readLine();
-                // encode message to ByteBuffer
-                outbuffer = charset.encode(message);
-                // write to socket
-                socketChannel.write(outbuffer);
-                
-                inbuffer.clear();
-                // read from socket to ByteBuffer
-                int readBytes = socketChannel.read(inbuffer);
-                if(-1 == readBytes) {
-                    socketChannel.close();
-                    return;
-                }
-                System.out.println("position: " + inbuffer.position());
-                // flip buffer before decode
-                inbuffer.flip();
-                // decode ByteBuffer to String
-                String received = charset.decode(inbuffer).toString();
-                System.out.println("received: " + received);   
+    
+    private static void writeToServer(SocketChannel server, String message) throws IOException {
+        ByteBuffer outBuffer = charset.encode(message);
+        // write to socket
+        server.write(outBuffer);
+    }
 
 
-            }
-           
+    private static SocketChannel initTCPConnection() throws IOException {
+        SocketChannel socketChannel = SocketChannel.open();
+        socketChannel.connect(new InetSocketAddress("127.0.0.1", 8080));
 
-        } catch (IOException e) {
-            e.printStackTrace();
+        return socketChannel;
+    }
+
+
+    private static void sendCommand(SocketChannel sock, Command command) throws JsonProcessingException, IOException {
+        ByteBuffer outbuffer;
+        
+        ObjectMapper mapper = new ObjectMapper();
+        String commandJson = mapper.writeValueAsString(command);
+
+        writeToServer(sock, commandJson);
+
+    }
+
+    private static void initConnection(SocketChannel socket) throws IOException {
+        ClientHelloCommand clientHello = new ClientHelloCommand("Avi");
+        sendCommand(socket, clientHello);
+        System.out.println(readFromServer(socket));
+    }
+
+    public static void main(String[] args) throws Exception {
+        try {
+            SocketChannel socket = initTCPConnection();
+            initConnection(socket);
+            //socket.close();
+
+        } catch(IOException e) {
+            System.err.println("Error");
+            System.err.println(e);
         }
     }
 }

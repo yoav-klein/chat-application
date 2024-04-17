@@ -5,10 +5,8 @@ package chat.server;
 
 import java.nio.channels.Selector;
 import java.nio.channels.SelectionKey;
-
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
-
 import java.nio.charset.Charset; 
 import java.nio.ByteBuffer;
 import java.net.InetSocketAddress;
@@ -20,44 +18,96 @@ import java.io.IOException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
+
+import chat.common.command.*;
+import chat.common.exception.*;
 
 public class Server {
     private static final int PORT = 8080;
+    private static final Charset charset = Charset.forName("UTF-8");
     private static ByteBuffer buffer = ByteBuffer.allocate(1024);
 
-    private static void getNewClient(SelectionKey selectionKey, String command) throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
-        JsonNode actualObj = mapper.readTree(command);
-        String opcode = actualObj.get("opcode").textValue();
-
-        if(!opcode.equals("ClientHello")) {
-            System.out.println("ERROR: should be ClientHello");
-        }
-
-        String userName = actualObj.get("userName").textValue();
-        System.out.println("Creating new user");
-        User newUser = new User(userName);
-        selectionKey.attach(newUser);
-    }
-
-    private static void handleClient(SelectionKey selectionKey) throws IOException {
-        Charset charset = Charset.forName("UTF-8");
-        SocketChannel client = (SocketChannel)selectionKey.channel();
-
+    private static String readFromClient(SocketChannel client) throws IOException {
+        
         buffer.clear();
         int readBytes = client.read(buffer);
         if(-1 == readBytes) {
-            client.close();
-            return;
+            System.out.println("DEBUG: client.read returned -1");
+            throw new IOException("client closed connection");
         }
 
         buffer.flip(); // set position back to 0 before decode
         String commandString = charset.decode(buffer).toString();
 
+        return commandString;
+    }
+
+    
+    private static void writeToClient(SocketChannel client, String message) throws IOException {
+        
+        ByteBuffer outBuffer = charset.encode(message);
+
+        // write to socket
+        client.write(outBuffer);
+        
+    }
+
+    private static void getNewClient(SelectionKey selectionKey, String command) throws BadRequestException, IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        ClientHelloCommand clientHello;
+        try {
+            clientHello = mapper.readValue(command, ClientHelloCommand.class);
+        } catch(UnrecognizedPropertyException e) {
+            throw new BadRequestException("Client hello message malformed");
+        }
+       
+        System.out.println("Creating new user: " + clientHello.getUserName());
+        User newUser = new User(clientHello.getUserName());
+        selectionKey.attach(newUser);
+
+        writeToClient((SocketChannel)selectionKey.channel(), "OK: New User Received");
+    }
+
+    private static void handleClient(SelectionKey selectionKey) {
+        SocketChannel client = (SocketChannel)selectionKey.channel();
+        String command;
+        try {
+            command = readFromClient(client);
+        } catch(java.net.SocketException e) {
+            System.out.println("Client closed unexpectedly");
+            selectionKey.cancel();
+            return;
+        }
+        catch(IOException e) {
+            if(e.getMessage().contains("closed")) {
+                System.out.println("INFO: client closed connection");
+                try {
+                    client.close();
+                } catch(IOException e1) {
+                    System.err.println("FATAL: couldn't close connection");
+                    System.err.println(e1);
+                }
+                selectionKey.cancel();
+                return;
+            }
+            System.err.println("ERROR: reading from client");
+            System.err.println(e);
+            return;
+        }
+        
         // if this is a new user
         if(null == selectionKey.attachment()) {
             System.out.println("INFO: new user");
-            getNewClient(selectionKey, commandString);
+            try {
+                getNewClient(selectionKey, command);
+
+            } catch(BadRequestException e) {
+                System.err.println("new client bad request");
+            } catch(IOException e) {
+                System.err.println("IOException");
+            }
+            
             return;
         }
 
@@ -68,12 +118,8 @@ public class Server {
         // execute the command
         // return reponse to client
 
-        System.out.println("received: " + commandString);        
+        System.out.println("received: " + command);        
         
-        ByteBuffer outBuffer = charset.encode("I got you man");
-
-        // write to socket
-        client.write(outBuffer);
         
     }
 
@@ -98,9 +144,10 @@ public class Server {
 
         // now we block on "select()" until a channel is ready for communication
         while(true) {
+            System.out.println("Number of connected clients: " + selector.keys().size());
             selector.select();
             
-            Set<SelectionKey> selectedKeys = selector.selectedKeys(); 
+            Set<SelectionKey> selectedKeys = selector.selectedKeys();
             Iterator<SelectionKey> iter = selectedKeys.iterator();
 
             while(iter.hasNext()) {
