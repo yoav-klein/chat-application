@@ -33,13 +33,39 @@ public class Client {
         }
     }
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, InterruptedException {
         try {
+            BufferedReader console = new BufferedReader(new InputStreamReader(System.in));
             comm = new Communication("127.0.0.1", 8080);
             
             initConnection();
-            comm.close();
 
+            ServerThread serverThread = new ServerThread(comm);
+            serverThread.start();
+
+            while(true) {
+                boolean shouldRun = true;
+                while(!console.ready()) {
+                    Thread.sleep(1000);
+                    if(serverThread.isConnectionClosed()) {
+                        System.out.println("Server closed connection");
+                        shouldRun = false;
+                        break;
+                    }
+                }
+                if(!shouldRun) {
+                    break;
+                }
+
+                String command = console.readLine();
+                if(command.equals("exit")) {
+                    serverThread.stopRunning();
+                    break;
+                }
+                comm.writeToServer(command);
+            }
+            serverThread.join();
+            
         } catch(IOException e) {
             System.err.println("Error");
             System.err.println(e);

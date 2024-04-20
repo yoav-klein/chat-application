@@ -61,9 +61,8 @@ class Communication {
         try {
             command = tcp.readFromChannel(client);
         } catch(java.net.SocketException e) {
-            System.out.println("Client closed unexpectedly");
             throw new ClosedConnectionException();
-        }   
+        }
         return command;
     }
     

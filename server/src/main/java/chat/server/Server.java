@@ -56,6 +56,9 @@ public class Server {
                         
                     }
                 }
+
+                System.out.println(message.getMessage());
+                comm.sendMessageToClient(new ClientMessage(message.getUid(), "Yes, got the " + message.getMessage()));
                 // ClientMessage response = handleRequest(message, comm);
                 // comm.sendMessageToClient(response);
                 
