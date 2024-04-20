@@ -18,8 +18,7 @@ public class Client {
     private static void sendCommand(Command command) throws JsonProcessingException, IOException {
         ObjectMapper mapper = new ObjectMapper();
         String commandJson = mapper.writeValueAsString(command);
-
-        comm = new Communication("127.0.0.1", 8080);
+        
         comm.writeToServer(commandJson);
 
     }
@@ -36,6 +35,7 @@ public class Client {
 
     public static void main(String[] args) throws IOException {
         try {
+            comm = new Communication("127.0.0.1", 8080);
             
             initConnection();
             comm.close();

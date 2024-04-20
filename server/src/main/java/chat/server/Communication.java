@@ -47,16 +47,15 @@ class Communication {
         serverSocket = ServerSocketChannel.open(); 
         serverSocket.bind(new InetSocketAddress(port));
         serverSocket.configureBlocking(false); // must be non-blocking to allow selecting
-
+        
         // now, we create a Select instance
-        Selector selector = Selector.open();
+        this.selector = Selector.open();
         serverSocket.register(selector, SelectionKey.OP_ACCEPT);
-        this.selector = selector;
+        
     }
     
     private String readClientRequest(SelectionKey selectionKey) throws IOException, ClosedConnectionException {
         SocketChannel client = (SocketChannel)selectionKey.channel();
-        /* CommClient commClient = (CommClient)selectionKey.attachment(); */
 
         String command;
         try {
@@ -75,10 +74,22 @@ class Communication {
         
         CommClient newClient = new CommClient(uid, clientKey);
         clients.put(uid, newClient);
-        uid++;
-        clientKey.attach(newClient);
+        ++uid;
+        clientKey.attach(newClient); // in order to associate key with client
     }
 
+
+    void sendMessageToClient(ClientMessage message) throws IOException {
+        CommClient client = clients.get(message.getUid());
+        if(null == client) {
+            throw new IOException("Couldn't find client socket");
+        }
+        SocketChannel socket = (SocketChannel)client.getKey().channel();
+
+        tcp.writeToChannel(socket, message.getMessage());
+    }
+
+    
     ClientMessage run() throws ClosedConnectionException, IOException  {
         while(true) {
             
@@ -124,14 +135,5 @@ class Communication {
             }
         }
     }
-
-    void sendMessageToClient(ClientMessage message) throws IOException {
-        CommClient client = clients.get(message.getUid());
-        if(null == client) {
-            throw new IOException("Couldn't find client socket");
-        }
-        SocketChannel socket = (SocketChannel)client.getKey().channel();
-
-        tcp.writeToChannel(socket, message.getMessage());
-    }
 }
+

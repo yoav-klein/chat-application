@@ -15,7 +15,7 @@ class Communication {
     
     Communication(String serverHost, int serverPort) throws IOException {
         channel.connect(new InetSocketAddress(serverHost, 8080));
-        channel.configureBlocking(false);
+        channel.configureBlocking(true);
         
     }
 
