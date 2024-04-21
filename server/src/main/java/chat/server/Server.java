@@ -20,7 +20,9 @@ import chat.common.exception.*;
 
 public class Server {
 
-    private static Map<Integer, User> users = new HashMap<Integer, User>();
+    private static Map<Integer, User> idToUserMap = new HashMap<Integer, User>();
+    private static Map<String, Integer> usernameToIdMap = new HashMap<String, Integer>();
+    
 
     /* private static ClientMessage handleRequest(ClientMessage message, Communication comm) {
         // switch case type of request
@@ -36,7 +38,8 @@ public class Server {
         }
         System.out.println("Creating new user: " + clientHello.getUserName());
         User newUser = new User(clientHello.getUserName());
-        users.put(message.getUid(), newUser);
+        idToUserMap.put(message.getUid(), newUser);
+        usernameToIdMap.put(clientHello.getUserName(), message.getUid());
        
     }
 
@@ -47,7 +50,7 @@ public class Server {
                 message = comm.run();
                 int uid = message.getUid();
 
-                if(!users.containsKey(uid)) { // new user
+                if(!idToUserMap.containsKey(uid)) { // new user
                     try {
                         registerUser(message);
                         comm.sendMessageToClient(new ClientMessage(uid, "{\"status\":\"OK\"}"));
@@ -65,7 +68,9 @@ public class Server {
 
             } catch(ClosedConnectionException e) {
                 int uid = e.getUid();
-                users.remove(uid);
+                String username = idToUserMap.get(uid).getName();
+                idToUserMap.remove(uid);
+                usernameToIdMap.remove(username);
             } 
         }
     }

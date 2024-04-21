@@ -32,7 +32,7 @@ class ServerThread extends Thread {
         } catch(IOException e) {
             shouldStop = true;
             return;
-        } catch(InterruptedException e) {}
+        }
         
     }
 }
