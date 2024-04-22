@@ -11,6 +11,8 @@ import chat.common.exception.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
+import com.yoav.consolemenu.ConsoleMenu;
+
 
 public class Client {
     private static Communication comm;
@@ -37,6 +39,7 @@ public class Client {
         try {
             BufferedReader console = new BufferedReader(new InputStreamReader(System.in));
             comm = new Communication("127.0.0.1", 8080);
+            ConsoleMenu menu = new ConsoleMenu("Select choice");
             
             initConnection();
 

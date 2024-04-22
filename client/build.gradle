@@ -6,7 +6,13 @@ plugins {
     id 'chat.java-application-conventions'
 }
 
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
 dependencies {
+    implementation 'com.yoav:console-menu:2.0'
     implementation project(':common')
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.2.3'
 }
