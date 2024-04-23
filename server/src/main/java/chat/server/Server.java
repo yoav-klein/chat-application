@@ -3,18 +3,15 @@
  */
 package chat.server;
 
-import java.util.Set;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.HashMap;
 
 import java.io.IOException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 
-import chat.common.command.*;
+import chat.common.request.*;
 import chat.common.exception.*;
 
 
@@ -30,9 +27,9 @@ public class Server {
 
     private static void registerUser(ClientMessage message) throws BadRequestException, IOException {
         ObjectMapper mapper = new ObjectMapper();
-        ClientHelloCommand clientHello;
+        ClientHelloRequest clientHello;
         try {
-            clientHello = mapper.readValue(message.getMessage(), ClientHelloCommand.class);
+            clientHello = mapper.readValue(message.getMessage(), ClientHelloRequest.class);
         } catch(UnrecognizedPropertyException e) {
             throw new BadRequestException("Client hello message malformed");
         }
