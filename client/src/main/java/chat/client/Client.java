@@ -41,6 +41,7 @@ public class Client {
             comm = new Communication("127.0.0.1", 8080);
             ConsoleMenu menu = new ConsoleMenu("Select choice");
             menu.addMenuItem("Send message to user", new SendMessageToUserCommand(comm));
+            menu.addMenuItem("Send message to group", new SendMessageToGroupCommand(comm));
             
             initConnection();
 
@@ -62,11 +63,7 @@ public class Client {
                 }
                 
                 menu.getUserChoice();
-                /* if(command.equals("exit")) {
-                    serverThread.stopRunning();
-                    break;
-                }
-                comm.writeToServer(command); */
+                
             }
             serverThread.join();
             
