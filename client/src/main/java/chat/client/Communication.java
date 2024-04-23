@@ -8,7 +8,7 @@ import java.io.IOException;
 import chat.common.util.*;
 import chat.common.exception.*;
 
-class Communication {
+public class Communication {
     
     private SocketChannel channel = SocketChannel.open();
     private TCPCommunication tcp = new TCPCommunication();
@@ -19,11 +19,11 @@ class Communication {
         
     }
 
-    void writeToServer(String message) throws IOException {
+    public void writeToServer(String message) throws IOException {
         tcp.writeToChannel(this.channel, message);
     }
 
-    String readFromServer() throws ClosedConnectionException, IOException {
+    public String readFromServer() throws ClosedConnectionException, IOException {
         return tcp.readFromChannel(this.channel);
     }
 
