@@ -1,12 +1,12 @@
 package chat.common;
 
-public class ServerMessageStatus {
+public class StatusServerMessage {
     private ServerMessageStatusType status;
     private String message;
 
-    public ServerMessageStatus() {};
+    public StatusServerMessage() {};
 
-    public ServerMessageStatus(ServerMessageStatusType status, String message) {
+    public StatusServerMessage(ServerMessageStatusType status, String message) {
         this.status = status;
         this.message = message;
     }

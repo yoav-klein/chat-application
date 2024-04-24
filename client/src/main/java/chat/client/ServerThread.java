@@ -33,7 +33,7 @@ class ServerThread extends Thread {
 
                 if(serverMessage.getType() == ServerMessageType.STATUS) {
                     System.out.println("Got status message");
-                    ServerMessageStatus status = mapper.readValue(serverMessage.getMessage(), ServerMessageStatus.class);
+                    StatusServerMessage status = mapper.readValue(serverMessage.getMessage(), StatusServerMessage.class);
                     System.out.println(status.getStatus() + ": " + status.getMessage());
                 } else if(serverMessage.getType() == ServerMessageType.CHAT) {
                     System.out.println("Got chat message");

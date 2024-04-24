@@ -49,14 +49,14 @@ public class Server {
             try {
                 clientMessage = comm.run();
                 int uid = clientMessage.getUid();
-                ServerMessageStatus status;
+                StatusServerMessage status;
 
                 if(!idToUserMap.containsKey(uid)) { // new user
                     try {
                         registerUser(clientMessage);
-                        status = new ServerMessageStatus(ServerMessageStatusType.SUCCESS, "client registered");
+                        status = new StatusServerMessage(ServerMessageStatusType.SUCCESS, "client registered");
                     } catch(BadRequestException e) {
-                        status = new ServerMessageStatus(ServerMessageStatusType.BAD_REQUEST, "Not a ClientHello message");
+                        status = new StatusServerMessage(ServerMessageStatusType.BAD_REQUEST, "Not a ClientHello message");
                     }
                     String serverStatusString = mapper.writeValueAsString(status);
                     serverMessageString = mapper.writeValueAsString(new ServerMessage(ServerMessageType.STATUS, serverStatusString));
@@ -65,7 +65,7 @@ public class Server {
                 }
 
                 // handle request
-                status = new ServerMessageStatus(); // TODO: replace this with handling the request
+                status = new StatusServerMessage(); // TODO: replace this with handling the request
 
                 String serverStatusString = mapper.writeValueAsString(status);
                 serverMessageString = mapper.writeValueAsString(new ServerMessage(ServerMessageType.STATUS, serverStatusString));
