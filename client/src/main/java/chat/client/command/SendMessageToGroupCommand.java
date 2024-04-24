@@ -10,9 +10,6 @@ import chat.common.request.SendMessageToGroupRequest;
 import chat.client.Communication;
 import chat.client.IDGenerator;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 public class SendMessageToGroupCommand implements Command {
     private Communication comm;
     private IDGenerator idGenerator;
