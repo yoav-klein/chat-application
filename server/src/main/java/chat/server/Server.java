@@ -13,6 +13,7 @@ import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 
 import chat.common.request.*;
 import chat.common.exception.*;
+import chat.common.*;
 
 
 public class Server {
@@ -41,8 +42,10 @@ public class Server {
     }
 
     private static void start(Communication comm) throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
         while(true) {
             ClientMessage message;
+            String serverMessageString;
             try {
                 message = comm.run();
                 int uid = message.getUid();
@@ -50,15 +53,18 @@ public class Server {
                 if(!idToUserMap.containsKey(uid)) { // new user
                     try {
                         registerUser(message);
-                        comm.sendMessageToClient(new ClientMessage(uid, "{\"status\":\"OK\"}"));
+                        serverMessageString = mapper.writeValueAsString(new ServerMessage(ServerMessageType.STATUS, "OK"));
+                        comm.sendMessageToClient(uid, serverMessageString);
+                        continue;
 
                     } catch(BadRequestException e) {
                         
                     }
                 }
-
-                System.out.println(message.getMessage());
-                comm.sendMessageToClient(new ClientMessage(message.getUid(), "Yes, got the " + message.getMessage()));
+                
+                
+                serverMessageString = mapper.writeValueAsString(new ServerMessage(ServerMessageType.STATUS, "Yes, got the " + message.getMessage()));
+                comm.sendMessageToClient(uid, serverMessageString);
                 // ClientMessage response = handleRequest(message, comm);
                 // comm.sendMessageToClient(response);
                 

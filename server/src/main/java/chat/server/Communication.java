@@ -12,6 +12,7 @@ import java.util.*;
 import java.io.*;
 
 import chat.common.util.*;
+import chat.common.*;
 import chat.common.exception.ClosedConnectionException;
 
 class Communication {
@@ -49,7 +50,7 @@ class Communication {
         serverSocket.configureBlocking(false); // must be non-blocking to allow selecting
         
         // now, we create a Select instance
-        this.selector = Selector.open();
+        selector = Selector.open();
         serverSocket.register(selector, SelectionKey.OP_ACCEPT);
         
     }
@@ -78,14 +79,14 @@ class Communication {
     }
 
 
-    void sendMessageToClient(ClientMessage message) throws IOException {
-        CommClient client = clients.get(message.getUid());
+    void sendMessageToClient(int uid, String message) throws IOException {
+        CommClient client = clients.get(uid);
         if(null == client) {
             throw new IOException("Couldn't find client socket");
         }
         SocketChannel socket = (SocketChannel)client.getKey().channel();
 
-        tcp.writeToChannel(socket, message.getMessage());
+        tcp.writeToChannel(socket, message);
     }
 
     
