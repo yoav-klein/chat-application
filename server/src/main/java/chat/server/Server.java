@@ -65,6 +65,7 @@ public class Server {
                 }
 
                 // handle request
+                System.out.println(clientMessage.getMessage());
                 status = new StatusServerMessage(); // TODO: replace this with handling the request
 
                 String serverStatusString = mapper.writeValueAsString(status);

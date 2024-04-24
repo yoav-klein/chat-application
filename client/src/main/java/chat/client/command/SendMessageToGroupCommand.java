@@ -8,15 +8,18 @@ import java.io.InputStreamReader;
 import com.yoav.consolemenu.Command;
 import chat.common.request.SendMessageToGroupRequest;
 import chat.client.Communication;
+import chat.client.IDGenerator;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class SendMessageToGroupCommand implements Command {
     private Communication comm;
+    private IDGenerator idGenerator;
 
-    public SendMessageToGroupCommand(Communication comm) {
+    public SendMessageToGroupCommand(Communication comm, IDGenerator idGenerator) {
         this.comm = comm;
+        this.idGenerator = idGenerator;
     }
 
     public void execute() {
@@ -35,22 +38,8 @@ public class SendMessageToGroupCommand implements Command {
             return;
         }
 
-        SendMessageToGroupRequest request = new SendMessageToGroupRequest(to, message);
-
-        ObjectMapper mapper = new ObjectMapper();
-        String requestJson;
-        try {
-            requestJson = mapper.writeValueAsString(request);
-        } catch(JsonProcessingException e) {
-            System.out.println("Couldn't encode to JSON");
-            return;
-        }
-
-        try {
-            comm.writeToServer(requestJson);
-        } catch(IOException e) {
-            System.out.println("Error sending to server");
-            System.out.println(e);
-        }
+        Integer requestId = idGenerator.getId();
+        SendMessageToGroupRequest request = new SendMessageToGroupRequest(requestId, to, message);
+        Common.serialize(comm, request);
     }
 }

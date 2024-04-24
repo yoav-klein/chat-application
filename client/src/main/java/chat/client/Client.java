@@ -15,38 +15,40 @@ import com.yoav.consolemenu.ConsoleMenu;
 
 
 public class Client {
-    private static Communication comm;
+    
+    
+    private Communication comm;
+    private ServerThread serverThread;
+    private IDGenerator idGenerator;
+    
+    public Client() throws IOException {
+        this.comm = new Communication("127.0.0.1", 8080);
+        this.serverThread = new ServerThread(comm);
+        this.idGenerator = new IDGenerator();
+        serverThread.start();
+    }
 
-    private static void sendCommand(Request request) throws JsonProcessingException, IOException {
+    private void sendCommand(Request request) throws JsonProcessingException, IOException {
         ObjectMapper mapper = new ObjectMapper();
         String commandJson = mapper.writeValueAsString(request);
         
         comm.writeToServer(commandJson);
-
     }
 
-    private static void initConnection() throws IOException {
-        ClientHelloRequest clientHello = new ClientHelloRequest("Avi");
+    private void initConnection() throws IOException {
+        ClientHelloRequest clientHello = new ClientHelloRequest("Avi", idGenerator.getId());
         sendCommand(clientHello);
-        /* try {
-            System.out.println(comm.readFromServer());
-        } catch(ClosedConnectionException e) {
-            System.err.println("server closed connection");
-        } */
     }
 
-    public static void main(String[] args) throws IOException, InterruptedException {
+    void run() {
         try {
             BufferedReader console = new BufferedReader(new InputStreamReader(System.in));
-            comm = new Communication("127.0.0.1", 8080);
+            
             ConsoleMenu menu = new ConsoleMenu("Select choice");
-            menu.addMenuItem("Send message to user", new SendMessageToUserCommand(comm));
-            menu.addMenuItem("Send message to group", new SendMessageToGroupCommand(comm));
+            menu.addMenuItem("Send message to user", new SendMessageToUserCommand(comm, idGenerator));
+            menu.addMenuItem("Send message to group", new SendMessageToGroupCommand(comm, idGenerator));
             
             initConnection();
-
-            ServerThread serverThread = new ServerThread(comm);
-            serverThread.start();
 
             while(true) {
                 boolean shouldRun = true;
@@ -70,7 +72,16 @@ public class Client {
         } catch(IOException e) {
             System.err.println("Error");
             System.err.println(e);
+        } catch(InterruptedException e) {
+            System.out.println("Interrupted: " + e);
         }
+
+    }
+
+    public static void main(String[] args) throws IOException {
+        Client client = new Client();
+        client.run();
+        
     }
 }
 

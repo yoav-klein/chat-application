@@ -8,8 +8,8 @@ public class ClientHelloRequest extends Request {
         super(RequestType.CLIENT_HELLO);
     }
     
-    public ClientHelloRequest(String userName) {
-        super(RequestType.CLIENT_HELLO);
+    public ClientHelloRequest(String userName, Integer requestId) {
+        super(RequestType.CLIENT_HELLO, requestId);
         this.userName = userName;
     }
 

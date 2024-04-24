@@ -9,8 +9,8 @@ public class SendMessageToUserRequest extends Request {
         super(RequestType.SEND_MESSAGE_TO_USER);
     }
 
-    public SendMessageToUserRequest(String toUser, String message) {
-        super(RequestType.SEND_MESSAGE_TO_USER);
+    public SendMessageToUserRequest(Integer requestId, String toUser, String message) {
+        super(RequestType.SEND_MESSAGE_TO_USER, requestId);
         this.toUser = toUser;
         this.message = message;
     }

@@ -55,6 +55,18 @@ class Communication {
         
     }
     
+    private void registerClient(Selector selector, ServerSocketChannel serverSocket) throws IOException {
+        SocketChannel client = serverSocket.accept(); // accept the connection from client
+        client.configureBlocking(false);
+        SelectionKey clientKey = client.register(selector, SelectionKey.OP_READ); // register, this time with OP_READ because this socket is for reading, not receiving connections
+        
+        CommClient newClient = new CommClient(uid, clientKey);
+        clients.put(uid, newClient);
+        ++uid;
+        clientKey.attach(newClient); // in order to associate key with client
+    }
+
+    
     private String readClientRequest(SelectionKey selectionKey) throws IOException, ClosedConnectionException {
         SocketChannel client = (SocketChannel)selectionKey.channel();
 
@@ -67,17 +79,6 @@ class Communication {
         return command;
     }
     
-    private void registerClient(Selector selector, ServerSocketChannel serverSocket) throws IOException {
-        SocketChannel client = serverSocket.accept(); // accept the connection from client
-        client.configureBlocking(false);
-        SelectionKey clientKey = client.register(selector, SelectionKey.OP_READ); // register, this time with OP_READ because this socket is for reading, not receiving connections
-        
-        CommClient newClient = new CommClient(uid, clientKey);
-        clients.put(uid, newClient);
-        ++uid;
-        clientKey.attach(newClient); // in order to associate key with client
-    }
-
 
     void sendMessageToClient(int uid, String message) throws IOException {
         CommClient client = clients.get(uid);

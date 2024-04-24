@@ -9,8 +9,8 @@ public class SendMessageToGroupRequest extends Request {
         super(RequestType.SEND_MESSAGE_TO_GROUP);
     }
 
-    public SendMessageToGroupRequest(String toGroup, String message) {
-        super(RequestType.SEND_MESSAGE_TO_GROUP);
+    public SendMessageToGroupRequest(Integer requestId, String toGroup, String message) {
+        super(RequestType.SEND_MESSAGE_TO_GROUP, requestId);
         this.toGroup = toGroup;
         this.message = message;
     }

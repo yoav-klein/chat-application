@@ -8,15 +8,19 @@ import java.io.InputStreamReader;
 import com.yoav.consolemenu.Command;
 import chat.common.request.SendMessageToUserRequest;
 import chat.client.Communication;
+import chat.client.IDGenerator;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+
 public class SendMessageToUserCommand implements Command {
     private Communication comm;
+    private IDGenerator idGenerator;
 
-    public SendMessageToUserCommand(Communication comm) {
+    public SendMessageToUserCommand(Communication comm, IDGenerator idGenerator) {
         this.comm = comm;
+        this.idGenerator = idGenerator;
     }
 
     public void execute() {
@@ -35,25 +39,10 @@ public class SendMessageToUserCommand implements Command {
             return;
         }
 
-        SendMessageToUserRequest request = new SendMessageToUserRequest(to, message);
-
-        ObjectMapper mapper = new ObjectMapper();
-        String requestJson;
-        try {
-            requestJson = mapper.writeValueAsString(request);
-        } catch(JsonProcessingException e) {
-            System.out.println("Couldn't encode to JSON");
-            return;
-        }
-
-        try {
-            comm.writeToServer(requestJson);
-        } catch(IOException e) {
-            System.out.println("Error sending to server");
-            System.out.println(e);
-        }
-        // read to
-        // read message
-        // construct a SendMessageToUserCommandArgs
+        Integer requestId = idGenerator.getId();
+        SendMessageToUserRequest request = new SendMessageToUserRequest(requestId, to, message);
+        
+        Common.serialize(comm, request);
+        
     }
 }
