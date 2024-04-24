@@ -44,30 +44,32 @@ public class Server {
     private static void start(Communication comm) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         while(true) {
-            ClientMessage message;
+            ClientMessage clientMessage;
             String serverMessageString;
             try {
-                message = comm.run();
-                int uid = message.getUid();
+                clientMessage = comm.run();
+                int uid = clientMessage.getUid();
+                ServerMessageStatus status;
 
                 if(!idToUserMap.containsKey(uid)) { // new user
                     try {
-                        registerUser(message);
-                        serverMessageString = mapper.writeValueAsString(new ServerMessage(ServerMessageType.STATUS, "OK"));
-                        comm.sendMessageToClient(uid, serverMessageString);
-                        continue;
-
+                        registerUser(clientMessage);
+                        status = new ServerMessageStatus(ServerMessageStatusType.SUCCESS, "client registered");
                     } catch(BadRequestException e) {
-                        
+                        status = new ServerMessageStatus(ServerMessageStatusType.BAD_REQUEST, "Not a ClientHello message");
                     }
+                    String serverStatusString = mapper.writeValueAsString(status);
+                    serverMessageString = mapper.writeValueAsString(new ServerMessage(ServerMessageType.STATUS, serverStatusString));
+                    comm.sendMessageToClient(uid, serverMessageString);
+                    continue;
                 }
-                
-                
-                serverMessageString = mapper.writeValueAsString(new ServerMessage(ServerMessageType.STATUS, "Yes, got the " + message.getMessage()));
+
+                // handle request
+                status = new ServerMessageStatus(); // TODO: replace this with handling the request
+
+                String serverStatusString = mapper.writeValueAsString(status);
+                serverMessageString = mapper.writeValueAsString(new ServerMessage(ServerMessageType.STATUS, serverStatusString));
                 comm.sendMessageToClient(uid, serverMessageString);
-                // ClientMessage response = handleRequest(message, comm);
-                // comm.sendMessageToClient(response);
-                
 
             } catch(ClosedConnectionException e) {
                 int uid = e.getUid();

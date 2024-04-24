@@ -28,11 +28,11 @@ public class Client {
     private static void initConnection() throws IOException {
         ClientHelloRequest clientHello = new ClientHelloRequest("Avi");
         sendCommand(clientHello);
-        try {
+        /* try {
             System.out.println(comm.readFromServer());
         } catch(ClosedConnectionException e) {
             System.err.println("server closed connection");
-        }
+        } */
     }
 
     public static void main(String[] args) throws IOException, InterruptedException {

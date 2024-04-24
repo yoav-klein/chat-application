@@ -30,7 +30,14 @@ class ServerThread extends Thread {
                 String message = comm.readFromServer();
                 ObjectMapper mapper = new ObjectMapper();
                 ServerMessage serverMessage = mapper.readValue(message, ServerMessage.class);
-                System.out.println(serverMessage.getType() + ": " + serverMessage.getMessage());
+
+                if(serverMessage.getType() == ServerMessageType.STATUS) {
+                    System.out.println("Got status message");
+                    ServerMessageStatus status = mapper.readValue(serverMessage.getMessage(), ServerMessageStatus.class);
+                    System.out.println(status.getStatus() + ": " + status.getMessage());
+                } else if(serverMessage.getType() == ServerMessageType.CHAT) {
+                    System.out.println("Got chat message");
+                }
                 
             }
         } catch(ClosedConnectionException e) {
