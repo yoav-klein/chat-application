@@ -1,21 +1,16 @@
 package chat.common;
 
-public class StatusServerMessage {
-    private ServerMessageStatusType status;
-    private String message;
-
-    public StatusServerMessage() {};
+public class StatusServerMessage extends ServerMessage {
+    public StatusPayload payload;
 
     public StatusServerMessage(ServerMessageStatusType status, String message) {
-        this.status = status;
-        this.message = message;
+        super(ServerMessageType.STATUS);
+        this.payload = new StatusPayload(status, message);
     }
 
-    public ServerMessageStatusType getStatus() {
-        return this.status;
+    
+    public StatusServerMessage() {
+        this(ServerMessageStatusType.SUCCESS, "");
     }
 
-    public String getMessage() {
-        return this.message;
-    }
 }

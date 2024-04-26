@@ -7,6 +7,8 @@ import chat.common.*;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
+
 
 class ServerThread extends Thread {
     private boolean shouldStop = false;
@@ -25,17 +27,19 @@ class ServerThread extends Thread {
     }
 
     public void run() {
+        ObjectMapper mapper = new ObjectMapper();
         try {
             while(true) {
                 String message = comm.readFromServer();
-                ObjectMapper mapper = new ObjectMapper();
-                ServerMessage serverMessage = mapper.readValue(message, ServerMessage.class);
-
-                if(serverMessage.getType() == ServerMessageType.STATUS) {
+                
+                JsonNode json = mapper.readTree(message);
+                String type = json.get("type").textValue();
+                if(type.equals(ServerMessageType.STATUS.toString())) {
+                    StatusPayload status = mapper.treeToValue(json.get("payload"), StatusPayload.class);
                     System.out.println("Got status message");
-                    StatusServerMessage status = mapper.readValue(serverMessage.getMessage(), StatusServerMessage.class);
-                    System.out.println(status.getStatus() + ": " + status.getMessage());
-                } else if(serverMessage.getType() == ServerMessageType.CHAT) {
+                    System.out.println(status.status + ": " + status.message);
+
+                } else if(type.equals(ServerMessageType.CHAT.toString())) {
                     System.out.println("Got chat message");
                 }
                 

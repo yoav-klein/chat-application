@@ -45,7 +45,6 @@ public class Server {
         ObjectMapper mapper = new ObjectMapper();
         while(true) {
             ClientMessage clientMessage;
-            String serverMessageString;
             try {
                 clientMessage = comm.run();
                 int uid = clientMessage.getUid();
@@ -59,18 +58,17 @@ public class Server {
                         status = new StatusServerMessage(ServerMessageStatusType.BAD_REQUEST, "Not a ClientHello message");
                     }
                     String serverStatusString = mapper.writeValueAsString(status);
-                    serverMessageString = mapper.writeValueAsString(new ServerMessage(ServerMessageType.STATUS, serverStatusString));
-                    comm.sendMessageToClient(uid, serverMessageString);
+                    comm.sendMessageToClient(uid, serverStatusString);
                     continue;
                 }
 
                 // handle request
                 System.out.println(clientMessage.getMessage());
+                
                 status = new StatusServerMessage(); // TODO: replace this with handling the request
 
                 String serverStatusString = mapper.writeValueAsString(status);
-                serverMessageString = mapper.writeValueAsString(new ServerMessage(ServerMessageType.STATUS, serverStatusString));
-                comm.sendMessageToClient(uid, serverMessageString);
+                comm.sendMessageToClient(uid, serverStatusString);
 
             } catch(ClosedConnectionException e) {
                 int uid = e.getUid();
