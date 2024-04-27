@@ -3,14 +3,14 @@ package chat.common;
 public class StatusServerMessage extends ServerMessage {
     public StatusPayload payload;
 
-    public StatusServerMessage(ServerMessageStatusType status, String message) {
+    public StatusServerMessage(int requestId, ServerMessageStatusType status, String message) {
         super(ServerMessageType.STATUS);
-        this.payload = new StatusPayload(status, message);
+        this.payload = new StatusPayload(requestId, status, message);
     }
 
     
     public StatusServerMessage() {
-        this(ServerMessageStatusType.SUCCESS, "");
+        this(0, ServerMessageStatusType.SUCCESS, "");
     }
 
 }

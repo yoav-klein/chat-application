@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.io.IOException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 
 import chat.common.request.*;
@@ -18,57 +19,79 @@ import chat.common.*;
 
 public class Server {
 
-    private static Map<Integer, User> idToUserMap = new HashMap<Integer, User>();
-    private static Map<String, Integer> usernameToIdMap = new HashMap<String, Integer>();
+    private Map<Integer, User> idToUserMap = new HashMap<Integer, User>();
+    private Map<String, Integer> usernameToIdMap = new HashMap<String, Integer>();
+    private Communication comm;
     
+    Server(int port) throws IOException {
+        comm = new Communication(port);
+    }
+    
+    private void handleRequest(ClientMessage clientMessage) {
+        String requestString = clientMessage.getMessage();
+        int uid = clientMessage.getUid();
 
-    /* private static ClientMessage handleRequest(ClientMessage message, Communication comm) {
-        // switch case type of request
-    } */
-
-    private static void registerUser(ClientMessage message) throws BadRequestException, IOException {
         ObjectMapper mapper = new ObjectMapper();
-        ClientHelloRequest clientHello;
+        StatusServerMessage status;
         try {
-            clientHello = mapper.readValue(message.getMessage(), ClientHelloRequest.class);
-        } catch(UnrecognizedPropertyException e) {
-            throw new BadRequestException("Client hello message malformed");
+            int requestId = mapper.readTree(requestString).get("requestId").intValue();
+            status = new StatusServerMessage(requestId, ServerMessageStatusType.SUCCESS, "OK"); // TODO: replace this with handling the request
+        } catch(IOException e){
+            status = new StatusServerMessage(-1, ServerMessageStatusType.FAILURE, e.getMessage());
         }
-        System.out.println("Creating new user: " + clientHello.getUserName());
-        User newUser = new User(clientHello.getUserName());
-        idToUserMap.put(message.getUid(), newUser);
-        usernameToIdMap.put(clientHello.getUserName(), message.getUid());
-       
+
+        try {
+            String serverStatusString = mapper.writeValueAsString(status);
+            comm.sendMessageToClient(uid, serverStatusString);
+        } catch(JsonProcessingException e) {
+            System.err.println(e);
+        }
+        catch(IOException e) {
+            System.err.println(e);
+        }
+        
     }
 
-    private static void start(Communication comm) throws IOException {
+    private void registerUser(ClientMessage message) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
+        ClientHelloRequest clientHello;
+        StatusServerMessage status;
+        int uid = message.getUid();
+
+        try {
+            clientHello = mapper.readValue(message.getMessage(), ClientHelloRequest.class);
+            User newUser = new User(clientHello.getUserName());
+            idToUserMap.put(uid, newUser);
+            usernameToIdMap.put(clientHello.getUserName(), uid);
+    
+            // return response to client
+            status = new StatusServerMessage(clientHello.getRequestId(), ServerMessageStatusType.SUCCESS, "client registered");
+        }
+
+        catch(UnrecognizedPropertyException e) {
+            status = new StatusServerMessage(-1, ServerMessageStatusType.BAD_REQUEST, "Not a ClientHello message");
+        }
+
+        String serverStatusString = mapper.writeValueAsString(status);
+        comm.sendMessageToClient(uid, serverStatusString);
+    }
+
+    private void run() throws IOException {
         while(true) {
             ClientMessage clientMessage;
+
             try {
                 clientMessage = comm.run();
                 int uid = clientMessage.getUid();
-                StatusServerMessage status;
 
                 if(!idToUserMap.containsKey(uid)) { // new user
-                    try {
-                        registerUser(clientMessage);
-                        status = new StatusServerMessage(ServerMessageStatusType.SUCCESS, "client registered");
-                    } catch(BadRequestException e) {
-                        status = new StatusServerMessage(ServerMessageStatusType.BAD_REQUEST, "Not a ClientHello message");
-                    }
-                    String serverStatusString = mapper.writeValueAsString(status);
-                    comm.sendMessageToClient(uid, serverStatusString);
+                    registerUser(clientMessage);
+                    
                     continue;
                 }
 
                 // handle request
-                System.out.println(clientMessage.getMessage());
-                
-                status = new StatusServerMessage(); // TODO: replace this with handling the request
-
-                String serverStatusString = mapper.writeValueAsString(status);
-                comm.sendMessageToClient(uid, serverStatusString);
+                handleRequest(clientMessage);
 
             } catch(ClosedConnectionException e) {
                 int uid = e.getUid();
@@ -81,8 +104,8 @@ public class Server {
 
     public static void main(String[] args) {
         try {
-            Communication tcp = new Communication(8080);
-            start(tcp);
+            Server server = new Server(8080);
+            server.run();
         } catch(IOException e) {
             System.err.println(e);
         }
