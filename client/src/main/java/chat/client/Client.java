@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
+import chat.common.*;
 import chat.common.request.*;
-import chat.common.exception.*;
 import chat.client.command.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -16,14 +16,17 @@ import com.yoav.consolemenu.ConsoleMenu;
 
 public class Client {
     
-    
     private Communication comm;
     private ServerThread serverThread;
     private IDGenerator idGenerator;
+    private Object synchronizer;
+    private StatusPayload currentStatus;
     
     public Client() throws IOException {
+        this.currentStatus = new StatusPayload();
+        this.synchronizer = new Object();
         this.comm = new Communication("127.0.0.1", 8080);
-        this.serverThread = new ServerThread(comm);
+        this.serverThread = new ServerThread(comm, synchronizer, currentStatus);
         this.idGenerator = new IDGenerator();
         serverThread.start();
     }
@@ -45,8 +48,8 @@ public class Client {
             BufferedReader console = new BufferedReader(new InputStreamReader(System.in));
             
             ConsoleMenu menu = new ConsoleMenu("Select choice");
-            menu.addMenuItem("Send message to user", new SendMessageToUserCommand(comm, idGenerator));
-            menu.addMenuItem("Send message to group", new SendMessageToGroupCommand(comm, idGenerator));
+            menu.addMenuItem("Send message to user", new SendMessageToUserCommand(comm, idGenerator, synchronizer, currentStatus));
+            // menu.addMenuItem("Send message to group", new SendMessageToGroupCommand(comm, idGenerator));
             
             initConnection();
 

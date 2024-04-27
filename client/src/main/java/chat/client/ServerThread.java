@@ -13,9 +13,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 class ServerThread extends Thread {
     private boolean shouldStop = false;
     private Communication comm;
+    private Object synchronizer;
+    private StatusPayload currentStatus;
 
-    ServerThread(Communication comm) {
+    ServerThread(Communication comm, Object synchronizer, StatusPayload currentStatus) {
         this.comm = comm;
+        this.synchronizer = synchronizer;
+        this.currentStatus = currentStatus;
     }
 
     void stopRunning() throws IOException {
@@ -38,6 +42,14 @@ class ServerThread extends Thread {
                     StatusPayload status = mapper.treeToValue(json.get("payload"), StatusPayload.class);
                     System.out.println("Got status message");
                     System.out.println(status.requestId + " - " + status.status + ": " + status.message);
+
+                    currentStatus.requestId = status.requestId;
+                    currentStatus.status = status.status;
+                    currentStatus.message = status.message;
+
+                    synchronized(synchronizer) {
+                        synchronizer.notifyAll();
+                    }
 
                 } else if(type.equals(ServerMessageType.CHAT.toString())) {
                     System.out.println("Got chat message");
