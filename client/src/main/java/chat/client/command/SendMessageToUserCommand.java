@@ -5,6 +5,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.yoav.consolemenu.Command;
 
 import chat.common.*;
@@ -43,7 +44,14 @@ public class SendMessageToUserCommand implements Command {
 
         Integer requestId = idGenerator.getId();
         SendMessageToUserRequest request = new SendMessageToUserRequest(requestId, to, message);
-        Common.serialize(comm, request);
+
+        try {
+            Common.serialize(comm, request);
+        } catch(IOException e) {
+            System.err.println("couldn't send to server");
+            System.err.println(e);
+            return;
+        }
 
         while(currentStatus.requestId != requestId) {
             try {

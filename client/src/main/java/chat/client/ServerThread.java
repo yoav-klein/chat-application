@@ -63,8 +63,7 @@ class ServerThread extends Thread {
         } catch(JsonParseException e) {
             System.err.println(e);
             return;
-        }
-        catch(IOException e) {
+        } catch(IOException e) {
             System.err.println(e);
             shouldStop = true;
             return;

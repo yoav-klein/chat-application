@@ -37,6 +37,12 @@ public class SendMessageToGroupCommand implements Command {
 
         Integer requestId = idGenerator.getId();
         SendMessageToGroupRequest request = new SendMessageToGroupRequest(requestId, to, message);
-        Common.serialize(comm, request);
+        try {
+            Common.serialize(comm, request);
+        } catch(IOException e) {
+            System.err.println("couldn't send to server");
+            System.err.println(e);
+            return;
+        }
     }
 }

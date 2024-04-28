@@ -31,16 +31,12 @@ public class Client {
         serverThread.start();
     }
 
-    private void sendCommand(Request request) throws JsonProcessingException, IOException {
-        ObjectMapper mapper = new ObjectMapper();
-        String commandJson = mapper.writeValueAsString(request);
-        
-        comm.writeToServer(commandJson);
-    }
-
     private void initConnection() throws IOException {
         ClientHelloRequest clientHello = new ClientHelloRequest("Avi", idGenerator.getId());
-        sendCommand(clientHello);
+        ObjectMapper mapper = new ObjectMapper();
+        String commandJson = mapper.writeValueAsString(clientHello);
+        
+        comm.writeToServer(commandJson);
     }
 
     void run() {
@@ -53,21 +49,15 @@ public class Client {
             
             initConnection();
 
-            while(true) {
-                boolean shouldRun = true;
-                while(!console.ready()) {
-                    Thread.sleep(1000);
-                    if(serverThread.isConnectionClosed()) {
-                        System.out.println("Server closed connection");
-                        shouldRun = false;
-                        break;
-                    }
-                }
-                if(!shouldRun) {
-                    break;
-                }
-                
+            boolean shouldRun = true;
+            while(shouldRun) {
                 menu.getUserChoice();
+                System.out.println("After get user choice");
+               
+                if(serverThread.isConnectionClosed()) {
+                    System.out.println("Server closed connection");
+                    shouldRun = false;
+                }
                 
             }
             serverThread.join();
