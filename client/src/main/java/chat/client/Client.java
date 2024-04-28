@@ -41,8 +41,6 @@ public class Client {
 
     void run() {
         try {
-            BufferedReader console = new BufferedReader(new InputStreamReader(System.in));
-            
             ConsoleMenu menu = new ConsoleMenu("Select choice");
             menu.addMenuItem("Send message to user", new SendMessageToUserCommand(comm, idGenerator, synchronizer, currentStatus));
             // menu.addMenuItem("Send message to group", new SendMessageToGroupCommand(comm, idGenerator));
