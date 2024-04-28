@@ -1,16 +1,11 @@
 package chat.client;
 
 import java.io.IOException;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-
 import chat.common.*;
 import chat.common.request.*;
 import chat.client.command.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.core.JsonProcessingException;
-
 import com.yoav.consolemenu.ConsoleMenu;
 
 

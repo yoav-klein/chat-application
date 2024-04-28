@@ -5,7 +5,6 @@ import java.nio.channels.Selector;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
-import java.nio.charset.Charset; 
 import java.net.InetSocketAddress;
 import java.util.*;
 import java.io.*;
@@ -14,7 +13,6 @@ import chat.common.util.*;
 import chat.common.exception.ClosedConnectionException;
 
 class Communication {
-    private static final Charset charset = Charset.forName("UTF-8");
     private static Selector selector;
     private TCPCommunication tcp = new TCPCommunication();
     
