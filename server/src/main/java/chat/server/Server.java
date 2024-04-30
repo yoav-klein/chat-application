@@ -34,6 +34,15 @@ public class Server {
         ObjectMapper mapper = new ObjectMapper();
         StatusServerMessage status;
         try {
+            RequestType type = RequestType.valueOf(mapper.readTree(requestString).get("type").textValue());
+            switch(type) {
+                case SEND_MESSAGE_TO_USER:
+                    status = Actions.sendMessageToUser(uid, comm, usernameToIdMap, 
+                        mapper.readValue(clientMessage.getMessage(), SendMessageToUserRequest.class));
+                    break;
+                default:
+                    // return a BAD_REQUEST
+            }
             int requestId = mapper.readTree(requestString).get("requestId").intValue();
             status = new StatusServerMessage(requestId, ServerMessageStatusType.SUCCESS, "OK"); // TODO: replace this with handling the request
         } catch(IOException e){

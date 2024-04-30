@@ -7,9 +7,9 @@ public class StatusPayload {
 
     public StatusPayload() {}
 
-    public StatusPayload(int requestId, ServerMessageStatusType status, String messsage) {
+    public StatusPayload(int requestId, ServerMessageStatusType status, String message) {
         this.requestId = requestId;
         this.status = status;
-        this.message = messsage;
+        this.message = message;
     }
 }
