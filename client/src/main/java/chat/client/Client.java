@@ -4,8 +4,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-import chat.common.*;
 import chat.common.request.*;
+import chat.common.servermessage.ServerMessageStatusType;
+import chat.common.servermessage.StatusPayload;
 import chat.client.command.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;

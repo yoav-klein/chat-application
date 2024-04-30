@@ -13,8 +13,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 
 import chat.common.request.*;
+import chat.common.servermessage.ServerMessageStatusType;
+import chat.common.servermessage.StatusServerMessage;
 import chat.common.exception.*;
-import chat.common.*;
 
 
 public class Server {

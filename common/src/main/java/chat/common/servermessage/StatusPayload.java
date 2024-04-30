@@ -1,4 +1,4 @@
-package chat.common;
+package chat.common.servermessage;
 
 public class StatusPayload {
     public ServerMessageStatusType status;

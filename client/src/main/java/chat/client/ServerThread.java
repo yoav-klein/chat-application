@@ -3,8 +3,9 @@ package chat.client;
 
 import java.io.IOException;
 import chat.common.exception.*;
-import chat.common.*;
-
+import chat.common.servermessage.ChatPayload;
+import chat.common.servermessage.ServerMessageType;
+import chat.common.servermessage.StatusPayload;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.JsonNode;

@@ -5,11 +5,11 @@ import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import chat.common.ChatMessageType;
-import chat.common.ChatServerMessage;
-import chat.common.ServerMessageStatusType;
-import chat.common.StatusServerMessage;
 import chat.common.request.SendMessageToUserRequest;
+import chat.common.servermessage.ChatMessageType;
+import chat.common.servermessage.ChatServerMessage;
+import chat.common.servermessage.ServerMessageStatusType;
+import chat.common.servermessage.StatusServerMessage;
 
 class Actions {
 

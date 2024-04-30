@@ -5,11 +5,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.yoav.consolemenu.Command;
 
-import chat.common.*;
 import chat.common.request.SendMessageToUserRequest;
+import chat.common.servermessage.StatusPayload;
 import chat.client.Communication;
 import chat.client.IDGenerator;
 

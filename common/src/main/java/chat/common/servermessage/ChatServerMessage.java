@@ -1,4 +1,4 @@
-package chat.common;
+package chat.common.servermessage;
 
 public class ChatServerMessage extends ServerMessage {
     public ChatPayload payload;
