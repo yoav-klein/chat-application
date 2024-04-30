@@ -33,6 +33,7 @@ public class SendMessageToGroupCommand extends ClientCommand {
         }
 
         SendMessageToGroupRequest request = new SendMessageToGroupRequest(0, to, message);
+        
         sendRequest(request);
     }
 }

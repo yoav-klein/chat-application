@@ -16,6 +16,7 @@ import chat.common.request.*;
 import chat.common.servermessage.ServerMessageStatusType;
 import chat.common.servermessage.StatusServerMessage;
 import chat.common.exception.*;
+import chat.common.util.Logger;
 
 
 public class Server {
@@ -41,11 +42,18 @@ public class Server {
             RequestType type = RequestType.valueOf(mapper.readTree(requestString).get("type").textValue());
             switch(type) {
                 case SEND_MESSAGE_TO_USER:
+                    Logger.debug("SEND_MESSAGE_TO_USER");
                     status = worker.sendMessageToUser(idToUserMap.get(uid).getName(), mapper.readValue(clientMessage.getMessage(), SendMessageToUserRequest.class));
                     break;
                 case CREATE_GROUP:
+                    Logger.debug("CREATE_GROUP");
                     status = worker.createGroup(idToUserMap.get(uid), mapper.readValue(clientMessage.getMessage(), CreateGroupRequest.class));
                     break;
+                case SEND_MESSAGE_TO_GROUP:
+                    Logger.debug("SEND_MESSAGE_TO_GROUP");
+                    status = worker.sendMessageToGroup(idToUserMap.get(uid), mapper.readValue(clientMessage.getMessage(), SendMessageToGroupRequest.class));
+                    break;
+
                 default:
                     int requestId = mapper.readTree(requestString).get("requestId").intValue();
                     status = new StatusServerMessage(requestId, ServerMessageStatusType.BAD_REQUEST, "Unknown request");

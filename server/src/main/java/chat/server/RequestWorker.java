@@ -7,11 +7,13 @@ import java.util.Map;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import chat.common.request.CreateGroupRequest;
+import chat.common.request.SendMessageToGroupRequest;
 import chat.common.request.SendMessageToUserRequest;
 import chat.common.servermessage.ChatMessageType;
 import chat.common.servermessage.ChatServerMessage;
 import chat.common.servermessage.ServerMessageStatusType;
 import chat.common.servermessage.StatusServerMessage;
+import chat.common.util.Logger;
 
 class RequestWorker {
     private Communication comm;
@@ -41,11 +43,13 @@ class RequestWorker {
 
     StatusServerMessage sendMessageToUser(String from, SendMessageToUserRequest request) {
         String toUserName = request.getToUser();
+
+        Logger.debug("sendMessageToUser: " + from + " -> " + toUserName);
         if(!usernameToIdMap.containsKey(toUserName)) {
             return new StatusServerMessage(request.getRequestId(), ServerMessageStatusType.BAD_REQUEST, "No such user: " + toUserName);
         } 
         int toUserId = usernameToIdMap.get(request.getToUser());
-        ChatServerMessage message = new ChatServerMessage(ChatMessageType.TO_USER, from, request.getMessage());
+        ChatServerMessage message = new ChatServerMessage(ChatMessageType.TO_USER, from, toUserName, request.getMessage());
         
         return sendMessageUtil(toUserId, request.getRequestId(), message);
         
@@ -58,4 +62,33 @@ class RequestWorker {
         return new StatusServerMessage(request.getRequestId(), ServerMessageStatusType.SUCCESS, "Created new group successfully");
 
     }
+
+    StatusServerMessage sendMessageToGroup(User from, SendMessageToGroupRequest request) {
+        Logger.debug("sendMessageToGroup: " + from.getName() + " -> " + request.getToGroup());
+        String toGroup = request.getToGroup();
+        if(!groupnameToGroup.containsKey(toGroup)) {
+            return new StatusServerMessage(request.getRequestId(), ServerMessageStatusType.BAD_REQUEST, "No such group: " + toGroup);
+        }
+        // TODO: check if user part of group
+
+        Group group = groupnameToGroup.get(toGroup);
+        ChatServerMessage message = new ChatServerMessage(ChatMessageType.TO_GROUP, from.getName(), toGroup, request.getMessage());
+        
+        for(User user: group.getUsers()) {
+            sendMessageUtil(usernameToIdMap.get(user.getName()), request.getRequestId(), message);
+        }
+
+        return new StatusServerMessage(request.getRequestId(), ServerMessageStatusType.SUCCESS, "Sent message to group successfully");
+    }
+/* 
+    StatusServerMessage joinGroup(User user, JoinGroupRequest request) {
+        String groupName = request.getGroupName();
+        if(!groupnameToGroup.containsKey(groupName)) {
+            return new StatusServerMessage(request.getRequestId(), ServerMessageStatusType.BAD_REQUEST, "No such group: " + groupName);
+        }
+        Group group = groupnameToGroup.get(groupName);
+        group.getUsers().add(idToUserMap.get(usernameToIdMap.get(from)));
+        
+        return new StatusServerMessage(request.getRequestId(), ServerMessageStatusType.SUCCESS, "Joined group successfully");
+    } */
 }

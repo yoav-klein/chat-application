@@ -9,6 +9,7 @@ import chat.client.Communication;
 import chat.client.IDGenerator;
 import chat.common.request.Request;
 import chat.common.servermessage.StatusPayload;
+import chat.common.util.Logger;
 
 public abstract class ClientCommand implements Command {
     protected Communication comm;
@@ -37,6 +38,7 @@ public abstract class ClientCommand implements Command {
 
         while(currentStatus.requestId != requestId) {
             try {
+                Logger.debug("waiting for signal from ServerThread");
                 synchronized(synchronizer) {
                     synchronizer.wait();
                 }

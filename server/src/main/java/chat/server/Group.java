@@ -12,5 +12,9 @@ class Group {
         this.users.add(owner);
         this.name = name;
     }
+
+    List<User> getUsers() {
+        return this.users;
+    }
     
 }

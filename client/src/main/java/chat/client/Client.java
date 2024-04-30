@@ -64,6 +64,7 @@ public class Client {
             ConsoleMenu menu = new ConsoleMenu("Select choice");
             menu.addMenuItem("Send message to user", new SendMessageToUserCommand(comm, idGenerator, synchronizer, currentStatus));
             menu.addMenuItem("Create a new group", new CreateGroupCommand(comm, idGenerator, synchronizer, currentStatus));
+            menu.addMenuItem("Send message to group", new SendMessageToGroupCommand(comm, idGenerator, synchronizer, currentStatus));
             
             initConnection();
 

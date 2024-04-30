@@ -3,9 +3,12 @@ package chat.client;
 
 import java.io.IOException;
 import chat.common.exception.*;
+import chat.common.servermessage.ChatMessageType;
 import chat.common.servermessage.ChatPayload;
 import chat.common.servermessage.ServerMessageType;
 import chat.common.servermessage.StatusPayload;
+import chat.common.util.Logger;
+
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -43,18 +46,21 @@ class ServerThread extends Thread {
                 if(type.equals(ServerMessageType.STATUS.toString())) {
             
                     StatusPayload status = mapper.treeToValue(json.get("payload"), StatusPayload.class);
-
+                    
+                    Logger.debug("Status: " + status.status + " " + status.message + " " + status.requestId);
                     currentStatus.requestId = status.requestId;
                     currentStatus.status = status.status;
                     currentStatus.message = status.message;
                     
                     synchronized(synchronizer) {
+                        Logger.debug("notifyAll in ServerThread");
                         synchronizer.notifyAll();
                     }
 
                 } else if(type.equals(ServerMessageType.CHAT.toString())) {
                     ChatPayload chat = mapper.treeToValue(json.get("payload"), ChatPayload.class);
-                    System.out.println(chat.from + ": " + chat.message);
+                    String to = chat.type == ChatMessageType.TO_GROUP ? "group " + chat.to : chat.to;
+                    System.out.println(chat.from + "->" + to + ": " + chat.message);
                 }
                 
             }
