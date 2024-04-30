@@ -41,7 +41,6 @@ class ServerThread extends Thread {
                 String type = json.get("type").textValue();
                 
                 if(type.equals(ServerMessageType.STATUS.toString())) {
-                    System.out.println("Got status back");
             
                     StatusPayload status = mapper.treeToValue(json.get("payload"), StatusPayload.class);
 

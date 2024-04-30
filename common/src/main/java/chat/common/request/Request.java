@@ -3,7 +3,7 @@ package chat.common.request;
 
 public abstract class Request {
     private final RequestType type;
-    private final Integer requestId;
+    private Integer requestId;
 
     public Request(RequestType type, Integer requestId) {
         this.requestId = requestId;
@@ -20,6 +20,10 @@ public abstract class Request {
 
     public Integer getRequestId() {
         return this.requestId;
+    }
+
+    public void setRequestId(Integer requestId) {
+        this.requestId = requestId;
     }
 
 }

@@ -5,24 +5,15 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-import com.yoav.consolemenu.Command;
-
 import chat.common.request.SendMessageToUserRequest;
 import chat.common.servermessage.StatusPayload;
 import chat.client.Communication;
 import chat.client.IDGenerator;
 
-public class SendMessageToUserCommand implements Command {
-    private Communication comm;
-    private IDGenerator idGenerator;
-    private Object synchronizer;
-    private StatusPayload currentStatus;
+public class SendMessageToUserCommand extends ClientCommand {
 
     public SendMessageToUserCommand(Communication comm, IDGenerator idGenerator, Object synchronizer, StatusPayload currentStatus) {
-        this.comm = comm;
-        this.idGenerator = idGenerator;
-        this.synchronizer = synchronizer;
-        this.currentStatus = currentStatus;
+        super(comm, idGenerator, synchronizer, currentStatus);
     }
 
     public void execute() {
@@ -41,27 +32,9 @@ public class SendMessageToUserCommand implements Command {
             return;
         }
 
-        Integer requestId = idGenerator.getId();
-        SendMessageToUserRequest request = new SendMessageToUserRequest(requestId, to, message);
+        SendMessageToUserRequest request = new SendMessageToUserRequest(0, to, message);
 
-        try {
-            Common.serialize(comm, request);
-        } catch(IOException e) {
-            System.err.println("couldn't send to server");
-            System.err.println(e);
-            return;
-        }
-
-        while(currentStatus.requestId != requestId) {
-            try {
-                synchronized(synchronizer) {
-                    synchronizer.wait();
-                }
-            } catch(InterruptedException e) {}
-        }
-
-        System.out.println("Got response from server");
-        System.out.println(currentStatus.requestId + ": " + currentStatus.message);
+        super.sendRequest(request);
         
     }
 }

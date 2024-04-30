@@ -1,7 +1,6 @@
 package chat.common.request;
 
 public class CreateGroupRequest extends Request {
-    public int requestId;
     public String groupName;
 
     public CreateGroupRequest() {

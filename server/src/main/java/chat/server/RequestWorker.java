@@ -54,8 +54,8 @@ class RequestWorker {
     StatusServerMessage createGroup(User user, CreateGroupRequest request) {
         Group newGroup = new Group(request.groupName, user);
         groupnameToGroup.put(request.groupName, newGroup);
-        
-        return new StatusServerMessage(request.requestId, ServerMessageStatusType.SUCCESS, "Created new group successfully");
+
+        return new StatusServerMessage(request.getRequestId(), ServerMessageStatusType.SUCCESS, "Created new group successfully");
 
     }
 }

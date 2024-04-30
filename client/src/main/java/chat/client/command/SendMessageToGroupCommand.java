@@ -5,18 +5,15 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-import com.yoav.consolemenu.Command;
 import chat.common.request.SendMessageToGroupRequest;
+import chat.common.servermessage.StatusPayload;
 import chat.client.Communication;
 import chat.client.IDGenerator;
 
-public class SendMessageToGroupCommand implements Command {
-    private Communication comm;
-    private IDGenerator idGenerator;
-
-    public SendMessageToGroupCommand(Communication comm, IDGenerator idGenerator) {
-        this.comm = comm;
-        this.idGenerator = idGenerator;
+public class SendMessageToGroupCommand extends ClientCommand {
+    
+    public SendMessageToGroupCommand(Communication comm, IDGenerator idGenerator, Object synchronizer, StatusPayload currentStatus) {
+        super(comm, idGenerator, synchronizer, currentStatus);
     }
 
     public void execute() {
@@ -35,14 +32,7 @@ public class SendMessageToGroupCommand implements Command {
             return;
         }
 
-        Integer requestId = idGenerator.getId();
-        SendMessageToGroupRequest request = new SendMessageToGroupRequest(requestId, to, message);
-        try {
-            Common.serialize(comm, request);
-        } catch(IOException e) {
-            System.err.println("couldn't send to server");
-            System.err.println(e);
-            return;
-        }
+        SendMessageToGroupRequest request = new SendMessageToGroupRequest(0, to, message);
+        sendRequest(request);
     }
 }
