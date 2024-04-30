@@ -37,7 +37,6 @@ public class Server {
             RequestType type = RequestType.valueOf(mapper.readTree(requestString).get("type").textValue());
             switch(type) {
                 case SEND_MESSAGE_TO_USER:
-                    System.out.println(idToUserMap.get(uid).getName() + " Wants to send a message");
                     status = Actions.sendMessageToUser(idToUserMap.get(uid).getName(), comm, usernameToIdMap, 
                         mapper.readValue(clientMessage.getMessage(), SendMessageToUserRequest.class));
                     break;
