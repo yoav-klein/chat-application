@@ -1,6 +1,9 @@
 package chat.client;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+
 import chat.common.*;
 import chat.common.request.*;
 import chat.client.command.*;
@@ -27,7 +30,9 @@ public class Client {
     }
 
     private void initConnection() throws IOException {
-        ClientHelloRequest clientHello = new ClientHelloRequest("Avi", idGenerator.getId());
+        System.out.println("Enter your username");
+        String userName = new BufferedReader(new InputStreamReader(System.in)).readLine();
+        ClientHelloRequest clientHello = new ClientHelloRequest(userName, idGenerator.getId());
         ObjectMapper mapper = new ObjectMapper();
         String commandJson = mapper.writeValueAsString(clientHello);
         

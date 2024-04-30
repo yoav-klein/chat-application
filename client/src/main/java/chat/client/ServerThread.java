@@ -54,6 +54,8 @@ class ServerThread extends Thread {
 
                 } else if(type.equals(ServerMessageType.CHAT.toString())) {
                     System.out.println("Got chat message");
+                    ChatPayload chat = mapper.treeToValue(json.get("payload"), ChatPayload.class);
+                    System.out.println(chat.from + ": " + chat.message);
                 }
                 
             }

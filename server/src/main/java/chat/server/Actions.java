@@ -26,9 +26,9 @@ class Actions {
         return statusMessage;
     }
 
-    static StatusServerMessage sendMessageToUser(int clientId, Communication comm, Map<String, Integer> usernameToId, SendMessageToUserRequest request) {
+    static StatusServerMessage sendMessageToUser(String from, Communication comm, Map<String, Integer> usernameToId, SendMessageToUserRequest request) {
         int toUserId = usernameToId.get(request.getToUser());
-        ChatServerMessage message = new ChatServerMessage(ChatMessageType.TO_USER, request.getMessage());
+        ChatServerMessage message = new ChatServerMessage(ChatMessageType.TO_USER, from, request.getMessage());
         
         return sendMessageUtil(toUserId, request.getRequestId(), comm, message);
         
