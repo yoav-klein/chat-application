@@ -22,10 +22,13 @@ public class Server {
 
     private Map<Integer, User> idToUserMap = new HashMap<Integer, User>();
     private Map<String, Integer> usernameToIdMap = new HashMap<String, Integer>();
+    private Map<String, Group> groupnameToGroup = new HashMap<String, Group>();
     private Communication comm;
+    private RequestWorker worker;
     
     Server(int port) throws IOException {
         comm = new Communication(port);
+        worker = new RequestWorker(comm, idToUserMap, usernameToIdMap, groupnameToGroup);
     }
     
     private void handleRequest(ClientMessage clientMessage) {
@@ -38,8 +41,10 @@ public class Server {
             RequestType type = RequestType.valueOf(mapper.readTree(requestString).get("type").textValue());
             switch(type) {
                 case SEND_MESSAGE_TO_USER:
-                    status = Actions.sendMessageToUser(idToUserMap.get(uid).getName(), comm, usernameToIdMap, 
-                        mapper.readValue(clientMessage.getMessage(), SendMessageToUserRequest.class));
+                    status = worker.sendMessageToUser(idToUserMap.get(uid).getName(), mapper.readValue(clientMessage.getMessage(), SendMessageToUserRequest.class));
+                    break;
+                case CREATE_GROUP:
+                    status = worker.createGroup(idToUserMap.get(uid), mapper.readValue(clientMessage.getMessage(), CreateGroupRequest.class));
                     break;
                 default:
                     int requestId = mapper.readTree(requestString).get("requestId").intValue();
