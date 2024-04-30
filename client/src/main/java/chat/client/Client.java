@@ -51,6 +51,8 @@ public class Client {
             if(currentStatus.status != ServerMessageStatusType.SUCCESS) {
                 System.err.println("Login to server failed");
                 System.err.println(currentStatus.message);
+            } else {
+                break;
             }
         }
 

@@ -42,10 +42,9 @@ public class Server {
                         mapper.readValue(clientMessage.getMessage(), SendMessageToUserRequest.class));
                     break;
                 default:
-                    // return a BAD_REQUEST
+                    int requestId = mapper.readTree(requestString).get("requestId").intValue();
+                    status = new StatusServerMessage(requestId, ServerMessageStatusType.BAD_REQUEST, "Unknown request");
             }
-            int requestId = mapper.readTree(requestString).get("requestId").intValue();
-            status = new StatusServerMessage(requestId, ServerMessageStatusType.SUCCESS, "OK"); // TODO: replace this with handling the request
         } catch(IOException e){
             status = new StatusServerMessage(-1, ServerMessageStatusType.FAILURE, e.getMessage());
         }

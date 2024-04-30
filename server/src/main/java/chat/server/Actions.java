@@ -27,6 +27,12 @@ class Actions {
     }
 
     static StatusServerMessage sendMessageToUser(String from, Communication comm, Map<String, Integer> usernameToId, SendMessageToUserRequest request) {
+        String toUserName = request.getToUser();
+        System.out.println("Send message to " + toUserName);
+        System.out.println(usernameToId.containsKey(toUserName));
+        if(!usernameToId.containsKey(toUserName)) {
+            return new StatusServerMessage(request.getRequestId(), ServerMessageStatusType.BAD_REQUEST, "No such user: " + toUserName);
+        } 
         int toUserId = usernameToId.get(request.getToUser());
         ChatServerMessage message = new ChatServerMessage(ChatMessageType.TO_USER, from, request.getMessage());
         
