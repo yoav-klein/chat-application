@@ -70,12 +70,18 @@ public class Server {
 
         try {
             clientHello = mapper.readValue(message.getMessage(), ClientHelloRequest.class);
-            User newUser = new User(clientHello.getUserName());
-            idToUserMap.put(uid, newUser);
-            usernameToIdMap.put(clientHello.getUserName(), uid);
-    
-            // return response to client
-            status = new StatusServerMessage(clientHello.getRequestId(), ServerMessageStatusType.SUCCESS, "client registered");
+
+            if(usernameToIdMap.containsKey(clientHello.getUserName())) {
+                status = new StatusServerMessage(clientHello.getRequestId(), ServerMessageStatusType.FAILURE, "Username already exists");
+            } else {
+                User newUser = new User(clientHello.getUserName());
+                idToUserMap.put(uid, newUser);
+                usernameToIdMap.put(clientHello.getUserName(), uid);
+        
+                // return response to client
+                status = new StatusServerMessage(clientHello.getRequestId(), ServerMessageStatusType.SUCCESS, "client registered");
+            }
+
         }
 
         catch(UnrecognizedPropertyException e) {

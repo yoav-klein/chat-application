@@ -30,13 +30,30 @@ public class Client {
     }
 
     private void initConnection() throws IOException {
-        System.out.println("Enter your username");
-        String userName = new BufferedReader(new InputStreamReader(System.in)).readLine();
-        ClientHelloRequest clientHello = new ClientHelloRequest(userName, idGenerator.getId());
         ObjectMapper mapper = new ObjectMapper();
-        String commandJson = mapper.writeValueAsString(clientHello);
-        
-        comm.writeToServer(commandJson);
+
+        while(true) {
+            System.out.println("Enter your username");
+            String userName = new BufferedReader(new InputStreamReader(System.in)).readLine();
+            int requestId = idGenerator.getId();
+            ClientHelloRequest clientHello = new ClientHelloRequest(userName, requestId);
+            String commandJson = mapper.writeValueAsString(clientHello);
+            comm.writeToServer(commandJson);
+            while(currentStatus.requestId != requestId)
+            {
+                try {
+                    synchronized(synchronizer) {
+                        synchronizer.wait();
+                    }
+                } catch(InterruptedException e) {}
+            }
+
+            if(currentStatus.status != ServerMessageStatusType.SUCCESS) {
+                System.err.println("Login to server failed");
+                System.err.println(currentStatus.message);
+            }
+        }
+
     }
 
     void run() {
