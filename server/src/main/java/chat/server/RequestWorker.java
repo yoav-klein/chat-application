@@ -2,15 +2,19 @@ package chat.server;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import chat.common.request.CreateGroupRequest;
 import chat.common.request.JoinGroupRequest;
+import chat.common.request.ListUsersInGroupRequest;
 import chat.common.request.SendMessageToGroupRequest;
 import chat.common.request.SendMessageToUserRequest;
 import chat.common.servermessage.ChatMessageType;
 import chat.common.servermessage.ChatServerMessage;
+import chat.common.servermessage.ServerMessage;
 import chat.common.servermessage.StatusMessageType;
 import chat.common.servermessage.StatusServerMessage;
 import chat.common.util.Logger;
@@ -101,6 +105,29 @@ class RequestWorker {
         user.addGroup(group);
         
         return new StatusServerMessage(request.getRequestId(), StatusMessageType.SUCCESS, "Joined group successfully");
+    }
+
+    ServerMessage listUsersInGroup(User user, ListUsersInGroupRequest request) {
+
+        String groupName = request.getGroupName();
+        if(!groupnameToGroup.containsKey(groupName)) {
+            return new StatusServerMessage(request.getRequestId(), StatusMessageType.BAD_REQUEST, "No such group: " + groupName);
+        }
+        
+        Group group = groupnameToGroup.get(groupName);
+
+        if(!group.getUsers().contains(user)) {
+            return new StatusServerMessage(request.getRequestId(), StatusMessageType.BAD_REQUEST, "Not part of group: " + groupName);
+        }
+
+        String response;
+        try {
+            response = new ObjectMapper().writeValueAsString(group.getUsers().stream().map(User::getName).collect(Collectors.toList()));
+        } catch(JsonProcessingException e) {
+            return new StatusServerMessage(request.getRequestId(), StatusMessageType.FAILURE, e.toString());
+        }
+                
+        return new StatusServerMessage(request.getRequestId(), StatusMessageType.SUCCESS, response);
     }
 
     

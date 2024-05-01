@@ -4,7 +4,7 @@ public class CreateGroupRequest extends Request {
     public String groupName;
 
     public CreateGroupRequest() {
-        this(0, "group");
+        this(0, "deadbeef");
     }
 
     public CreateGroupRequest(int requestId, String groupName) {

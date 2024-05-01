@@ -2,6 +2,7 @@ package chat.client.command;
 
 
 import java.io.IOException;
+import java.io.ObjectInputFilter.Status;
 
 import com.yoav.consolemenu.Command;
 
@@ -24,7 +25,7 @@ public abstract class ClientCommand implements Command {
         this.currentStatus = currentStatus;
     }
 
-    protected void sendRequest(Request request) {
+    protected StatusPayload sendRequest(Request request) {
         int requestId = idGenerator.getId();
         request.setRequestId(requestId);
         
@@ -33,7 +34,6 @@ public abstract class ClientCommand implements Command {
         } catch(IOException e) {
             System.err.println("couldn't send to server");
             System.err.println(e);
-            return;
         }
 
         while(currentStatus.requestId != requestId) {
@@ -46,8 +46,8 @@ public abstract class ClientCommand implements Command {
             } catch(InterruptedException e) {}
         }
 
-        System.out.println("Got response from server");
-        System.out.println(currentStatus.requestId + ": " + currentStatus.message);
+        return currentStatus;
+
     }
     
 }

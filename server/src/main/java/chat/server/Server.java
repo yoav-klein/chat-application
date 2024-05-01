@@ -15,6 +15,7 @@ import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import chat.common.request.*;
 import chat.common.servermessage.StatusMessageType;
 import chat.common.servermessage.StatusServerMessage;
+import chat.common.servermessage.ServerMessage;
 import chat.common.exception.*;
 import chat.common.util.Logger;
 
@@ -37,7 +38,7 @@ public class Server {
         int uid = clientMessage.getUid();
 
         ObjectMapper mapper = new ObjectMapper();
-        StatusServerMessage status;
+        ServerMessage status;
         try {
             RequestType type = RequestType.valueOf(mapper.readTree(requestString).get("type").textValue());
             switch(type) {
@@ -57,12 +58,17 @@ public class Server {
                     Logger.debug("JOIN_GROUP");
                     status = worker.joinGroup(idToUserMap.get(uid), mapper.readValue(clientMessage.getMessage(), JoinGroupRequest.class));
                     break;
+                case LIST_USERS_IN_GROUP:
+                    Logger.debug("LIST_USERS_IN_GROUP");
+                    status = worker.listUsersInGroup(idToUserMap.get(uid), mapper.readValue(clientMessage.getMessage(), ListUsersInGroupRequest.class));
+                    break;
 
                 default:
                     int requestId = mapper.readTree(requestString).get("requestId").intValue();
                     status = new StatusServerMessage(requestId, StatusMessageType.BAD_REQUEST, "Unknown request");
             }
         } catch(IOException e){
+            Logger.debug("FAILED in handleRequest");
             status = new StatusServerMessage(-1, StatusMessageType.FAILURE, e.getMessage());
         }
 

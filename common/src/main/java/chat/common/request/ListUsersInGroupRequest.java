@@ -1,14 +1,14 @@
 package chat.common.request;
 
-public class JoinGroupRequest extends Request {
+public class ListUsersInGroupRequest extends Request {
     private String groupName;
 
-    public JoinGroupRequest() {
-        super(RequestType.JOIN_GROUP);
+    public ListUsersInGroupRequest() {
+        super(RequestType.LIST_USERS_IN_GROUP);
     }
     
-    public JoinGroupRequest(Integer requestId, String groupName) {
-        super(RequestType.JOIN_GROUP, requestId);
+    public ListUsersInGroupRequest(Integer requestId, String groupName) {
+        super(RequestType.LIST_USERS_IN_GROUP, requestId);
         this.groupName = groupName;
     }
 
@@ -19,5 +19,4 @@ public class JoinGroupRequest extends Request {
     public void setGroupName(String groupName) {
         this.groupName = groupName;
     }
-    
 }

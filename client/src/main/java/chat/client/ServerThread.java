@@ -47,7 +47,8 @@ class ServerThread extends Thread {
             
                     StatusPayload status = mapper.treeToValue(json.get("payload"), StatusPayload.class);
                     
-                    Logger.debug("Status: " + status.status + " " + status.message + " " + status.requestId);
+                    Logger.debug("Status: " + status.status + ", requestId: "  + status.requestId + " : " + status.message);
+
                     currentStatus.requestId = status.requestId;
                     currentStatus.status = status.status;
                     currentStatus.message = status.message;
