@@ -137,7 +137,7 @@ class RequestWorker {
         return new StatusServerMessage(request.getRequestId(), StatusMessageType.SUCCESS, response);
     }
 
-    public ServerMessage leaveGroup(User user, LeaveGroupRequest value) {
+    ServerMessage leaveGroup(User user, LeaveGroupRequest value) {
         String groupName = value.getGroupName();
         if(!groupnameToGroup.containsKey(groupName)) {
             return new StatusServerMessage(value.getRequestId(), StatusMessageType.BAD_REQUEST, "No such group: " + groupName);
@@ -155,7 +155,7 @@ class RequestWorker {
         return new StatusServerMessage(value.getRequestId(), StatusMessageType.SUCCESS, "Left group successfully");
     }
 
-    public ServerMessage listGroupsOfUser(User user, ListGroupsRequest value) {
+    ServerMessage listGroupsOfUser(User user, ListGroupsRequest value) {
         String response;
         try {
             response = new ObjectMapper().writeValueAsString(user.getGroups().stream().map(Group::getName).collect(Collectors.toList()));
