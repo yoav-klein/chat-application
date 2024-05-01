@@ -18,4 +18,8 @@ class User {
     void addGroup(Group group) {
         groups.add(group);
     }
+
+    List<Group> getGroups() {
+        return groups;
+    }
 }

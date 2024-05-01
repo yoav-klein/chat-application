@@ -133,11 +133,23 @@ public class Server {
 
             } catch(ClosedConnectionException e) {
                 int uid = e.getUid();
-                String username = idToUserMap.get(uid).getName();
-                idToUserMap.remove(uid);
-                usernameToIdMap.remove(username);
+                handleUserLogout(uid);
             } 
         }
+    }
+
+    private void handleUserLogout(int uid) {
+        Logger.debug("User " + idToUserMap.get(uid).getName() + " logged out");
+        User user = idToUserMap.get(uid);
+        String username = user.getName();
+
+        for(Group group : user.getGroups()) {
+            group.removeUser(user);
+        }
+        
+        idToUserMap.remove(uid);
+        usernameToIdMap.remove(username);
+        
     }
 
     public static void main(String[] args) {

@@ -61,6 +61,7 @@ class RequestWorker {
 
     StatusServerMessage createGroup(User user, CreateGroupRequest request) {
         Group newGroup = new Group(request.groupName, user);
+        
         groupnameToGroup.put(request.groupName, newGroup);
 
         return new StatusServerMessage(request.getRequestId(), StatusMessageType.SUCCESS, "Created new group successfully");
@@ -101,7 +102,7 @@ class RequestWorker {
             return new StatusServerMessage(request.getRequestId(), StatusMessageType.BAD_REQUEST, "Already part of group: " + groupName);
         }
 
-        group.getUsers().add(user);
+        group.addUser(user);
         user.addGroup(group);
         
         return new StatusServerMessage(request.getRequestId(), StatusMessageType.SUCCESS, "Joined group successfully");
