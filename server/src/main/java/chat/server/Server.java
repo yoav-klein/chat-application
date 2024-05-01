@@ -13,7 +13,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 
 import chat.common.request.*;
-import chat.common.servermessage.ServerMessageStatusType;
+import chat.common.servermessage.StatusMessageType;
 import chat.common.servermessage.StatusServerMessage;
 import chat.common.exception.*;
 import chat.common.util.Logger;
@@ -60,10 +60,10 @@ public class Server {
 
                 default:
                     int requestId = mapper.readTree(requestString).get("requestId").intValue();
-                    status = new StatusServerMessage(requestId, ServerMessageStatusType.BAD_REQUEST, "Unknown request");
+                    status = new StatusServerMessage(requestId, StatusMessageType.BAD_REQUEST, "Unknown request");
             }
         } catch(IOException e){
-            status = new StatusServerMessage(-1, ServerMessageStatusType.FAILURE, e.getMessage());
+            status = new StatusServerMessage(-1, StatusMessageType.FAILURE, e.getMessage());
         }
 
         try {
@@ -88,20 +88,20 @@ public class Server {
             clientHello = mapper.readValue(message.getMessage(), ClientHelloRequest.class);
 
             if(usernameToIdMap.containsKey(clientHello.getUserName())) {
-                status = new StatusServerMessage(clientHello.getRequestId(), ServerMessageStatusType.FAILURE, "Username already exists");
+                status = new StatusServerMessage(clientHello.getRequestId(), StatusMessageType.FAILURE, "Username already exists");
             } else {
                 User newUser = new User(clientHello.getUserName());
                 idToUserMap.put(uid, newUser);
                 usernameToIdMap.put(clientHello.getUserName(), uid);
         
                 // return response to client
-                status = new StatusServerMessage(clientHello.getRequestId(), ServerMessageStatusType.SUCCESS, "client registered");
+                status = new StatusServerMessage(clientHello.getRequestId(), StatusMessageType.SUCCESS, "client registered");
             }
 
         }
 
         catch(UnrecognizedPropertyException e) {
-            status = new StatusServerMessage(-1, ServerMessageStatusType.BAD_REQUEST, "Not a ClientHello message");
+            status = new StatusServerMessage(-1, StatusMessageType.BAD_REQUEST, "Not a ClientHello message");
         }
 
         String serverStatusString = mapper.writeValueAsString(status);

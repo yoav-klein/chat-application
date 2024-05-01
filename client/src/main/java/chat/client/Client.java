@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 
 import chat.common.request.*;
-import chat.common.servermessage.ServerMessageStatusType;
+import chat.common.servermessage.StatusMessageType;
 import chat.common.servermessage.StatusPayload;
 import chat.client.command.*;
 
@@ -49,7 +49,7 @@ public class Client {
                 } catch(InterruptedException e) {}
             }
 
-            if(currentStatus.status != ServerMessageStatusType.SUCCESS) {
+            if(currentStatus.status != StatusMessageType.SUCCESS) {
                 System.err.println("Login to server failed");
                 System.err.println(currentStatus.message);
             } else {

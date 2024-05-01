@@ -1,6 +1,6 @@
 package chat.common.servermessage;
 
-public enum ServerMessageStatusType {
+public enum StatusMessageType {
     SUCCESS,
     FAILURE,
     BAD_REQUEST,
