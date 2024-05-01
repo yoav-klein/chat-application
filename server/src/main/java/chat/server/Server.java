@@ -62,6 +62,10 @@ public class Server {
                     Logger.debug("LIST_USERS_IN_GROUP");
                     status = worker.listUsersInGroup(idToUserMap.get(uid), mapper.readValue(clientMessage.getMessage(), ListUsersInGroupRequest.class));
                     break;
+                case LEAVE_GROUP:
+                    Logger.debug("LEAVE_GROUP");
+                    status = worker.leaveGroup(idToUserMap.get(uid), mapper.readValue(clientMessage.getMessage(), LeaveGroupRequest.class));
+                    break;
 
                 default:
                     int requestId = mapper.readTree(requestString).get("requestId").intValue();

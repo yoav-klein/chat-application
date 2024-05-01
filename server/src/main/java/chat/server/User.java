@@ -19,6 +19,10 @@ class User {
         groups.add(group);
     }
 
+    void removeGroup(Group group) {
+        groups.remove(group);
+    }
+
     List<Group> getGroups() {
         return groups;
     }

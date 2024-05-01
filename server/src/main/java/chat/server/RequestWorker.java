@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import chat.common.request.CreateGroupRequest;
 import chat.common.request.JoinGroupRequest;
+import chat.common.request.LeaveGroupRequest;
 import chat.common.request.ListUsersInGroupRequest;
 import chat.common.request.SendMessageToGroupRequest;
 import chat.common.request.SendMessageToUserRequest;
@@ -129,6 +130,24 @@ class RequestWorker {
         }
                 
         return new StatusServerMessage(request.getRequestId(), StatusMessageType.SUCCESS, response);
+    }
+
+    public ServerMessage leaveGroup(User user, LeaveGroupRequest value) {
+        String groupName = value.getGroupName();
+        if(!groupnameToGroup.containsKey(groupName)) {
+            return new StatusServerMessage(value.getRequestId(), StatusMessageType.BAD_REQUEST, "No such group: " + groupName);
+        }
+        
+        Group group = groupnameToGroup.get(groupName);
+
+        if(!group.getUsers().contains(user)) {
+            return new StatusServerMessage(value.getRequestId(), StatusMessageType.BAD_REQUEST, "Not part of group: " + groupName);
+        }
+
+        group.removeUser(user);
+        user.removeGroup(group);
+        
+        return new StatusServerMessage(value.getRequestId(), StatusMessageType.SUCCESS, "Left group successfully");
     }
 
     
