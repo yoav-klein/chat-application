@@ -53,6 +53,10 @@ public class Server {
                     Logger.debug("SEND_MESSAGE_TO_GROUP");
                     status = worker.sendMessageToGroup(idToUserMap.get(uid), mapper.readValue(clientMessage.getMessage(), SendMessageToGroupRequest.class));
                     break;
+                case JOIN_GROUP:
+                    Logger.debug("JOIN_GROUP");
+                    status = worker.joinGroup(idToUserMap.get(uid), mapper.readValue(clientMessage.getMessage(), JoinGroupRequest.class));
+                    break;
 
                 default:
                     int requestId = mapper.readTree(requestString).get("requestId").intValue();

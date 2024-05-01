@@ -65,11 +65,13 @@ public class Client {
             menu.addMenuItem("Send message to user", new SendMessageToUserCommand(comm, idGenerator, synchronizer, currentStatus));
             menu.addMenuItem("Create a new group", new CreateGroupCommand(comm, idGenerator, synchronizer, currentStatus));
             menu.addMenuItem("Send message to group", new SendMessageToGroupCommand(comm, idGenerator, synchronizer, currentStatus));
+            menu.addMenuItem("Join a group", new JoinGroupCommand(comm, idGenerator, synchronizer, currentStatus));
             
             initConnection();
 
             boolean shouldRun = true;
             while(shouldRun) {
+                menu.displayMenu();
                 menu.getUserChoice();
                 System.out.println("After get user choice");
                

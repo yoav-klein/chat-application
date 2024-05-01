@@ -6,6 +6,7 @@ import java.util.Map;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import chat.common.request.CreateGroupRequest;
+import chat.common.request.JoinGroupRequest;
 import chat.common.request.SendMessageToGroupRequest;
 import chat.common.request.SendMessageToUserRequest;
 import chat.common.servermessage.ChatMessageType;
@@ -68,26 +69,39 @@ class RequestWorker {
         if(!groupnameToGroup.containsKey(toGroup)) {
             return new StatusServerMessage(request.getRequestId(), ServerMessageStatusType.BAD_REQUEST, "No such group: " + toGroup);
         }
-        // TODO: check if user part of group
-
+        
         Group group = groupnameToGroup.get(toGroup);
+
+        if(!group.getUsers().contains(from)) {
+            return new StatusServerMessage(request.getRequestId(), ServerMessageStatusType.BAD_REQUEST, "Not part of group: " + toGroup);
+        }
+
         ChatServerMessage message = new ChatServerMessage(ChatMessageType.TO_GROUP, from.getName(), toGroup, request.getMessage());
         
         for(User user: group.getUsers()) {
+            if(user.equals(from)) continue;
             sendMessageUtil(usernameToIdMap.get(user.getName()), request.getRequestId(), message);
         }
 
         return new StatusServerMessage(request.getRequestId(), ServerMessageStatusType.SUCCESS, "Sent message to group successfully");
     }
-/* 
+
     StatusServerMessage joinGroup(User user, JoinGroupRequest request) {
         String groupName = request.getGroupName();
         if(!groupnameToGroup.containsKey(groupName)) {
             return new StatusServerMessage(request.getRequestId(), ServerMessageStatusType.BAD_REQUEST, "No such group: " + groupName);
         }
         Group group = groupnameToGroup.get(groupName);
-        group.getUsers().add(idToUserMap.get(usernameToIdMap.get(from)));
+
+        if(group.getUsers().contains(user)) {
+            return new StatusServerMessage(request.getRequestId(), ServerMessageStatusType.BAD_REQUEST, "Already part of group: " + groupName);
+        }
+
+        group.getUsers().add(user);
+        user.addGroup(group);
         
         return new StatusServerMessage(request.getRequestId(), ServerMessageStatusType.SUCCESS, "Joined group successfully");
-    } */
+    }
+
+
 }
