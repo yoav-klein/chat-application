@@ -16,6 +16,10 @@ class Group {
         this.name = name;
     }
 
+    String getName() {
+        return this.name;
+    }
+
     List<User> getUsers() {
         return this.users;
     }

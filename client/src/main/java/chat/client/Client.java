@@ -68,6 +68,7 @@ public class Client {
             menu.addMenuItem("Join a group", new JoinGroupCommand(comm, idGenerator, synchronizer, currentStatus));
             menu.addMenuItem("List users in group", new ListUsersInGroupCommand(comm, idGenerator, synchronizer, currentStatus));
             menu.addMenuItem("Leave group", new LeaveGroupCommand(comm, idGenerator, synchronizer, currentStatus));
+            menu.addMenuItem("List groups", new ListGroupsCommand(comm, idGenerator, synchronizer, currentStatus));
             
             initConnection();
 

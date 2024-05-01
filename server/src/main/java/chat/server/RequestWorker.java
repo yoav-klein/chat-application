@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import chat.common.request.CreateGroupRequest;
 import chat.common.request.JoinGroupRequest;
 import chat.common.request.LeaveGroupRequest;
+import chat.common.request.ListGroupsRequest;
 import chat.common.request.ListUsersInGroupRequest;
 import chat.common.request.SendMessageToGroupRequest;
 import chat.common.request.SendMessageToUserRequest;
@@ -61,6 +62,10 @@ class RequestWorker {
     }
 
     StatusServerMessage createGroup(User user, CreateGroupRequest request) {
+        if(groupnameToGroup.containsKey(request.groupName)) {
+            return new StatusServerMessage(request.getRequestId(), StatusMessageType.BAD_REQUEST, "Group already exists: " + request.groupName);
+        }
+        
         Group newGroup = new Group(request.groupName, user);
         
         groupnameToGroup.put(request.groupName, newGroup);
@@ -148,6 +153,17 @@ class RequestWorker {
         user.removeGroup(group);
         
         return new StatusServerMessage(value.getRequestId(), StatusMessageType.SUCCESS, "Left group successfully");
+    }
+
+    public ServerMessage listGroupsOfUser(User user, ListGroupsRequest value) {
+        String response;
+        try {
+            response = new ObjectMapper().writeValueAsString(user.getGroups().stream().map(Group::getName).collect(Collectors.toList()));
+        } catch(JsonProcessingException e) {
+            return new StatusServerMessage(value.getRequestId(), StatusMessageType.FAILURE, e.toString());
+        }
+                
+        return new StatusServerMessage(value.getRequestId(), StatusMessageType.SUCCESS, response);
     }
 
     
