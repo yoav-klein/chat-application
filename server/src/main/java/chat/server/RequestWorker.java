@@ -117,7 +117,7 @@ class RequestWorker {
         Group group = groupnameToGroup.get(groupName);
 
         if(!group.getUsers().contains(user)) {
-            return new StatusServerMessage(request.getRequestId(), StatusMessageType.BAD_REQUEST, "Not part of group: " + groupName);
+            return new StatusServerMessage(request.getRequestId(), StatusMessageType.UNAUTHORIZED, "Not part of group: " + groupName);
         }
 
         String response;

@@ -46,6 +46,7 @@ public abstract class ClientCommand implements Command {
             } catch(InterruptedException e) {}
         }
 
+        Logger.debug("Return from sendRequest");
         return currentStatus;
 
     }

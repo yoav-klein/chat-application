@@ -41,9 +41,9 @@ public class ListUsersInGroupCommand extends ClientCommand {
         ListUsersInGroupRequest request = new ListUsersInGroupRequest(0, group);
 
         StatusPayload status = super.sendRequest(request);
-        if(status.status == StatusMessageType.FAILURE) {
+        if(status.status != StatusMessageType.SUCCESS) {
             System.out.println("Couldn't list users in group");
-            System.out.println(status.message);
+            System.out.println(status.status + ": " + status.message);
             return;
         }
         
