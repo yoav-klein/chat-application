@@ -21,14 +21,8 @@ public class Client {
     private Object synchronizer;
     private StatusPayload currentStatus;
     private ConsoleInterface consoleInterface;
-    
-    public Client() throws IOException {
-        this.currentStatus = new StatusPayload();
-        this.synchronizer = new Object();
-        this.comm = new Communication("127.0.0.1", 8080);
-        this.serverThread = new ServerThread(comm, synchronizer, currentStatus);
-        this.idGenerator = new IDGenerator();
 
+    RequestManager initRequestManager() {
         RequestManager requestManager = new RequestManager();
         requestManager.addOption(new SendMessageToUserOption());
         requestManager.addOption(new SendMessageToGroupOption());
@@ -37,6 +31,17 @@ public class Client {
         requestManager.addOption(new ListGroupsOption());
         requestManager.addOption(new ListUsersInGroupOption());
         requestManager.addOption(new LeaveGroupOption());
+        return requestManager;
+    }
+    
+    public Client() throws IOException {
+        this.currentStatus = new StatusPayload();
+        this.synchronizer = new Object();
+        this.comm = new Communication("127.0.0.1", 8080);
+        this.serverThread = new ServerThread(comm, synchronizer, currentStatus);
+        this.idGenerator = new IDGenerator();
+
+        RequestManager requestManager = initRequestManager();
         
         this.consoleInterface = new ConsoleInterface(requestManager, idGenerator);
 
@@ -84,38 +89,31 @@ public class Client {
             System.err.println("couldn't send to server");
             System.err.println(e);
         }
-
-        while(currentStatus.requestId != request.getRequestId()) {
+    }
+    
+    void waitForResponse() {
+        while(currentStatus.requestId != idGenerator.getCurrent()) {
             try {
-                Logger.debug("waiting for signal from ServerThread");
                 synchronized(synchronizer) {
                     synchronizer.wait();
                 }
-                System.out.println("wake up " + currentStatus.requestId + " " + request.getRequestId());
             } catch(InterruptedException e) {}
         }
-
-        Logger.debug("Return from sendRequest");
     }
 
     void run() {
         try {
-            /* ConsoleMenu menu = new ConsoleMenu("Select choice");
-            menu.addMenuItem("Send message to user", new SendMessageToUserCommand(comm, idGenerator, synchronizer, currentStatus));
-            menu.addMenuItem("Create a new group", new CreateGroupCommand(comm, idGenerator, synchronizer, currentStatus));
-            menu.addMenuItem("Send message to group", new SendMessageToGroupCommand(comm, idGenerator, synchronizer, currentStatus));
-            menu.addMenuItem("Join a group", new JoinGroupCommand(comm, idGenerator, synchronizer, currentStatus));
-            menu.addMenuItem("List users in group", new ListUsersInGroupCommand(comm, idGenerator, synchronizer, currentStatus));
-            menu.addMenuItem("Leave group", new LeaveGroupCommand(comm, idGenerator, synchronizer, currentStatus));
-            menu.addMenuItem("List groups",  new ListGroupsCommand(comm, idGenerator, synchronizer, currentStatus));  */
-            
             initConnection();
 
             boolean shouldRun = true;
             while(shouldRun) {
                 Request request = consoleInterface.getRequest();
-                System.out.println("After get request");
                 sendRequest(request);
+                waitForResponse();
+
+                // handle response
+                // check type of request
+                // and handle response accordingly
                 
                 if(serverThread.isConnectionClosed()) {
                     System.out.println("Server closed connection");
