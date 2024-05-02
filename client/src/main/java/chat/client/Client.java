@@ -7,10 +7,10 @@ import java.io.InputStreamReader;
 import chat.common.request.*;
 import chat.common.servermessage.StatusMessageType;
 import chat.common.servermessage.StatusPayload;
-import chat.client.command.*;
+import chat.common.util.Logger;
+import chat.client.option.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.yoav.consolemenu.ConsoleMenu;
 
 
 public class Client {
@@ -20,6 +20,7 @@ public class Client {
     private IDGenerator idGenerator;
     private Object synchronizer;
     private StatusPayload currentStatus;
+    private ConsoleInterface consoleInterface;
     
     public Client() throws IOException {
         this.currentStatus = new StatusPayload();
@@ -27,6 +28,18 @@ public class Client {
         this.comm = new Communication("127.0.0.1", 8080);
         this.serverThread = new ServerThread(comm, synchronizer, currentStatus);
         this.idGenerator = new IDGenerator();
+
+        RequestManager requestManager = new RequestManager();
+        requestManager.addOption(new SendMessageToUserOption());
+        requestManager.addOption(new SendMessageToGroupOption());
+        requestManager.addOption(new CreateGroupOption());
+        requestManager.addOption(new JoinGroupOption());
+        requestManager.addOption(new ListGroupsOption());
+        requestManager.addOption(new ListUsersInGroupOption());
+        requestManager.addOption(new LeaveGroupOption());
+        
+        this.consoleInterface = new ConsoleInterface(requestManager, idGenerator);
+
         serverThread.start();
     }
 
@@ -59,25 +72,51 @@ public class Client {
 
     }
 
+    void sendRequest(Request request) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            String requestJson;
+            
+            requestJson = mapper.writeValueAsString(request);
+            
+            comm.writeToServer(requestJson);
+        } catch(IOException e) {
+            System.err.println("couldn't send to server");
+            System.err.println(e);
+        }
+
+        while(currentStatus.requestId != request.getRequestId()) {
+            try {
+                Logger.debug("waiting for signal from ServerThread");
+                synchronized(synchronizer) {
+                    synchronizer.wait();
+                }
+                System.out.println("wake up " + currentStatus.requestId + " " + request.getRequestId());
+            } catch(InterruptedException e) {}
+        }
+
+        Logger.debug("Return from sendRequest");
+    }
+
     void run() {
         try {
-            ConsoleMenu menu = new ConsoleMenu("Select choice");
+            /* ConsoleMenu menu = new ConsoleMenu("Select choice");
             menu.addMenuItem("Send message to user", new SendMessageToUserCommand(comm, idGenerator, synchronizer, currentStatus));
             menu.addMenuItem("Create a new group", new CreateGroupCommand(comm, idGenerator, synchronizer, currentStatus));
             menu.addMenuItem("Send message to group", new SendMessageToGroupCommand(comm, idGenerator, synchronizer, currentStatus));
             menu.addMenuItem("Join a group", new JoinGroupCommand(comm, idGenerator, synchronizer, currentStatus));
             menu.addMenuItem("List users in group", new ListUsersInGroupCommand(comm, idGenerator, synchronizer, currentStatus));
             menu.addMenuItem("Leave group", new LeaveGroupCommand(comm, idGenerator, synchronizer, currentStatus));
-            menu.addMenuItem("List groups", new ListGroupsCommand(comm, idGenerator, synchronizer, currentStatus));
+            menu.addMenuItem("List groups",  new ListGroupsCommand(comm, idGenerator, synchronizer, currentStatus));  */
             
             initConnection();
 
             boolean shouldRun = true;
             while(shouldRun) {
-                menu.displayMenu();
-                menu.getUserChoice();
-                System.out.println("After get user choice");
-               
+                Request request = consoleInterface.getRequest();
+                System.out.println("After get request");
+                sendRequest(request);
+                
                 if(serverThread.isConnectionClosed()) {
                     System.out.println("Server closed connection");
                     shouldRun = false;
