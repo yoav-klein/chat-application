@@ -7,11 +7,6 @@ import chat.client.option.Option;
 import chat.common.request.Request;
 
 public class RequestManager {
-    
-    public static class RequestContainer {
-        public Request currRequest;
-    }
-
         
     List<Option> options = new ArrayList<>();;
     

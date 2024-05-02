@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import chat.common.request.*;
 import chat.common.servermessage.StatusMessageType;
 import chat.common.servermessage.StatusPayload;
+import chat.common.util.Logger;
 import chat.client.option.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -16,7 +17,6 @@ public class Client {
     
     private Communication comm;
     private ServerThread serverThread;
-    private IDGenerator idGenerator;
     private Object synchronizer;
     private StatusPayload currentStatus;
     private UserInterface userInterface;
@@ -38,11 +38,10 @@ public class Client {
         this.synchronizer = new Object();
         this.comm = new Communication("127.0.0.1", 8080);
         this.serverThread = new ServerThread(comm, synchronizer, currentStatus);
-        this.idGenerator = new IDGenerator();
-
+        
         RequestManager requestManager = initRequestManager();
         
-        this.userInterface = new ConsoleInterface(requestManager, idGenerator);
+        this.userInterface = new ConsoleInterface(requestManager);
 
         serverThread.start();
     }
@@ -53,11 +52,13 @@ public class Client {
         while(true) {
             System.out.println("Enter your username");
             String userName = new BufferedReader(new InputStreamReader(System.in)).readLine();
-            int requestId = idGenerator.getId();
-            ClientHelloRequest clientHello = new ClientHelloRequest(userName, requestId);
+            
+            ClientHelloRequest clientHello = new ClientHelloRequest(userName, IDGenerator.getInstance().getId());
             String commandJson = mapper.writeValueAsString(clientHello);
             comm.writeToServer(commandJson);
-            while(currentStatus.requestId != requestId)
+
+
+            while(currentStatus.requestId != IDGenerator.getInstance().getCurrent())
             {
                 try {
                     synchronized(synchronizer) {
@@ -68,6 +69,7 @@ public class Client {
 
             if(currentStatus.status != StatusMessageType.SUCCESS) {
                 System.err.println("Login to server failed");
+                System.err.println(currentStatus.status);
                 System.err.println(currentStatus.message);
             } else {
                 break;
@@ -90,12 +92,13 @@ public class Client {
         }
     }
     
-    void waitForResponse() {
-        while(currentStatus.requestId != idGenerator.getCurrent()) {
+    void waitForResponse(Request request) {
+        while(currentStatus.requestId != request.getRequestId()) {
             try {
                 synchronized(synchronizer) {
                     synchronizer.wait();
                 }
+                Logger.debug("waitForResponse woke up " );
             } catch(InterruptedException e) {}
         }
     }
@@ -106,9 +109,12 @@ public class Client {
 
             boolean shouldRun = true;
             while(shouldRun) {
+                Logger.debug("calling getRequest");
+
+
                 Request request = userInterface.getRequest();
                 sendRequest(request);
-                waitForResponse();
+                waitForResponse(request);
 
                 // handle response
                 // check type of request

@@ -12,19 +12,22 @@ import chat.client.option.*;
 import chat.common.request.Request;
 
 public class ConsoleInterface implements UserInterface {
+    private static class RequestContainer {
+        public Request currRequest;
+    }
+
     
-    RequestManager.RequestContainer current = new RequestManager.RequestContainer();
+    RequestContainer current = new RequestContainer();
     RequestManager reqManager;
-    IDGenerator idGenerator;
     ConsoleMenu consoleMenu = new ConsoleMenu("Main Menu");
     
     
-    ConsoleInterface (RequestManager reqManager, IDGenerator idGenerator) {
+    ConsoleInterface (RequestManager reqManager) {
         class GeneralCommand implements Command {
             Option option;
-            RequestManager.RequestContainer currentRequest;
+            RequestContainer currentRequest;
     
-            public GeneralCommand(Option option, RequestManager.RequestContainer currentRequest) {
+            public GeneralCommand(Option option, RequestContainer currentRequest) {
                 this.option = option;
                 this.currentRequest = currentRequest;
             }
@@ -51,7 +54,7 @@ public class ConsoleInterface implements UserInterface {
                 currentRequest.currRequest = request;
             }
         }
-        this.idGenerator = idGenerator;
+        
         this.reqManager = reqManager;
 
         List<Option> optlist = reqManager.getOptionList();
