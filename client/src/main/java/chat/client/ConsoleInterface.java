@@ -11,7 +11,7 @@ import com.yoav.consolemenu.*;
 import chat.client.option.*;
 import chat.common.request.Request;
 
-public class ConsoleInterface {
+public class ConsoleInterface implements UserInterface {
     
     RequestManager.RequestContainer current = new RequestManager.RequestContainer();
     RequestManager reqManager;
@@ -65,7 +65,6 @@ public class ConsoleInterface {
     public Request getRequest() {
         consoleMenu.displayMenu();
         consoleMenu.getUserChoice();
-        current.currRequest.setRequestId(idGenerator.getId());
         
         return current.currRequest;
     }

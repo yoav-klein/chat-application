@@ -6,7 +6,7 @@ import java.util.Map;
 import chat.client.Parameter;
 import chat.common.request.*;
 
-public class SendMessageToGroupOption implements Option {
+public class SendMessageToGroupOption extends Option {
     final String description;
     
     public SendMessageToGroupOption() {
@@ -29,7 +29,7 @@ public class SendMessageToGroupOption implements Option {
         String toGroup = (String)values.get(0);
         String message = (String)values.get(1);
 
-        return new SendMessageToGroupRequest(0, toGroup, message); // 0 is a dummy value for requestId
+        return new SendMessageToGroupRequest(super.getRequestId(), toGroup, message); // 0 is a dummy value for requestId
     }
 
     

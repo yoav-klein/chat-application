@@ -6,7 +6,7 @@ import java.util.Map;
 import chat.client.Parameter;
 import chat.common.request.*;
 
-public class LeaveGroupOption implements Option {
+public class LeaveGroupOption extends Option {
     final String description;
     
     public LeaveGroupOption() {
@@ -28,7 +28,7 @@ public class LeaveGroupOption implements Option {
     public Request createRequest(Map<Integer, Object> values) {
         String group = (String)values.get(0);
 
-        return new LeaveGroupRequest(0, group); // 0 is a dummy value for requestId
+        return new LeaveGroupRequest(super.getRequestId(), group); // 0 is a dummy value for requestId
     }
 
     

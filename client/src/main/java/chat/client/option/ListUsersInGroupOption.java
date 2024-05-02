@@ -6,7 +6,7 @@ import java.util.Map;
 import chat.client.Parameter;
 import chat.common.request.*;
 
-public class ListUsersInGroupOption implements Option {
+public class ListUsersInGroupOption extends Option {
     final String description;
     
     public ListUsersInGroupOption() {
@@ -28,7 +28,7 @@ public class ListUsersInGroupOption implements Option {
     public Request createRequest(Map<Integer, Object> values) {
         String group = (String)values.get(0);
 
-        return new ListUsersInGroupRequest(0, group); // 0 is a dummy value for requestId
+        return new ListUsersInGroupRequest(super.getRequestId(), group); // 0 is a dummy value for requestId
     }
 
     

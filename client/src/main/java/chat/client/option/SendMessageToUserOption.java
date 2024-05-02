@@ -6,7 +6,7 @@ import java.util.Map;
 import chat.client.Parameter;
 import chat.common.request.*;
 
-public class SendMessageToUserOption implements Option {
+public class SendMessageToUserOption extends Option {
     final String description;
     
     public SendMessageToUserOption() {
@@ -29,7 +29,7 @@ public class SendMessageToUserOption implements Option {
         String toUser = (String)values.get(0);
         String message = (String)values.get(1);
 
-        return new SendMessageToUserRequest(0, toUser, message); // 0 is a dummy value for requestId
+        return new SendMessageToUserRequest(super.getRequestId(), toUser, message); // 0 is a dummy value for requestId
     }
 
     

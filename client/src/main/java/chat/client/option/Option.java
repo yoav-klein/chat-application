@@ -4,11 +4,17 @@ import java.util.Map;
 import chat.common.request.Request;
 import chat.client.Parameter;
 
-public interface Option {
-    Request createRequest(Map<Integer, Object> values);
+import chat.client.IDGenerator;
 
-    String getDescription();
+public abstract class Option {
+    abstract public Request createRequest(Map<Integer, Object> values);
 
-    Map<Integer, Parameter> getParameters();
+    abstract public String getDescription();
+
+    abstract public Map<Integer, Parameter> getParameters();
+
+    protected int getRequestId() {
+        return IDGenerator.getInstance().getId();
+    }
 
 }

@@ -7,7 +7,6 @@ import java.io.InputStreamReader;
 import chat.common.request.*;
 import chat.common.servermessage.StatusMessageType;
 import chat.common.servermessage.StatusPayload;
-import chat.common.util.Logger;
 import chat.client.option.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -20,7 +19,7 @@ public class Client {
     private IDGenerator idGenerator;
     private Object synchronizer;
     private StatusPayload currentStatus;
-    private ConsoleInterface consoleInterface;
+    private UserInterface userInterface;
 
     RequestManager initRequestManager() {
         RequestManager requestManager = new RequestManager();
@@ -43,7 +42,7 @@ public class Client {
 
         RequestManager requestManager = initRequestManager();
         
-        this.consoleInterface = new ConsoleInterface(requestManager, idGenerator);
+        this.userInterface = new ConsoleInterface(requestManager, idGenerator);
 
         serverThread.start();
     }
@@ -107,7 +106,7 @@ public class Client {
 
             boolean shouldRun = true;
             while(shouldRun) {
-                Request request = consoleInterface.getRequest();
+                Request request = userInterface.getRequest();
                 sendRequest(request);
                 waitForResponse();
 
