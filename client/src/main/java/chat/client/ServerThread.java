@@ -19,11 +19,13 @@ class ServerThread extends Thread {
     private Communication comm;
     private Object synchronizer;
     private StatusPayload currentStatus;
+    private UserInterface userInterface;
 
-    ServerThread(Communication comm, Object synchronizer, StatusPayload currentStatus) {
+    ServerThread(Communication comm, Object synchronizer, StatusPayload currentStatus, UserInterface userInterface) {
         this.comm = comm;
         this.synchronizer = synchronizer;
         this.currentStatus = currentStatus;
+        this.userInterface = userInterface;
     }
 
     void stopRunning() throws IOException {
@@ -60,8 +62,7 @@ class ServerThread extends Thread {
 
                 } else if(type.equals(ServerMessageType.CHAT.toString())) {
                     ChatPayload chat = mapper.treeToValue(json.get("payload"), ChatPayload.class);
-                    String to = chat.type == ChatMessageType.TO_GROUP ? "group " + chat.to : chat.to;
-                    System.out.println(chat.from + "->" + to + ": " + chat.message);
+                    userInterface.processChatMessage(chat);
                 }
                 
             }

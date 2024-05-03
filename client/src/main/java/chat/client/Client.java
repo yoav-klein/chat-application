@@ -37,11 +37,11 @@ public class Client {
         this.currentStatus = new StatusPayload();
         this.synchronizer = new Object();
         this.comm = new Communication("127.0.0.1", 8080);
-        this.serverThread = new ServerThread(comm, synchronizer, currentStatus);
         
         RequestManager requestManager = initRequestManager();
         
         this.userInterface = new ConsoleInterface(requestManager);
+        this.serverThread = new ServerThread(comm, synchronizer, currentStatus, userInterface);
 
         serverThread.start();
     }
@@ -116,6 +116,7 @@ public class Client {
                 sendRequest(request);
                 waitForResponse(request);
 
+                userInterface.processStatusMessage(currentStatus);
                 // handle response
                 // check type of request
                 // and handle response accordingly
