@@ -111,15 +111,11 @@ public class Client {
             while(shouldRun) {
                 Logger.debug("calling getRequest");
 
-
                 Request request = userInterface.getRequest();
                 sendRequest(request);
                 waitForResponse(request);
 
                 userInterface.processStatusMessage(currentStatus);
-                // handle response
-                // check type of request
-                // and handle response accordingly
                 
                 if(serverThread.isConnectionClosed()) {
                     System.out.println("Server closed connection");
