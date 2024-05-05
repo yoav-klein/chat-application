@@ -4,8 +4,6 @@ import chat.client.option.Option;
 import chat.common.request.Request;
 import chat.common.servermessage.ChatPayload;
 import chat.common.servermessage.StatusPayload;
-import chat.common.util.Logger;
-
 import java.util.Map;
 
 public class MockInterface extends UserInterface {
