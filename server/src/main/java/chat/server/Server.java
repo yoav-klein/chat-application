@@ -33,15 +33,14 @@ public class Server {
     
     private void handleRequest(ClientMessage clientMessage) {
         String requestString = clientMessage.getMessage();
-        int uid = clientMessage.getUid();
 
+        int uid = clientMessage.getUid();
 
         ObjectMapper mapper = new ObjectMapper();
         ServerMessage status;
         try {
             RequestType type = RequestType.valueOf(mapper.readTree(requestString).get("type").textValue());
             
-
             // check if user is logged in
             if(!idToUserMap.containsKey(uid) && type != RequestType.LOGIN) {
                 int requestId = mapper.readTree(requestString).get("requestId").intValue();
@@ -88,10 +87,15 @@ public class Server {
 
                 default:
                     int requestId = mapper.readTree(requestString).get("requestId").intValue();
-                    status = new StatusServerMessage(requestId, StatusMessageType.BAD_REQUEST, "Unknown request");
+                    status = new StatusServerMessage(requestId, StatusMessageType.BAD_REQUEST, "Unknown request type: " + type);
             }
-        } catch(IOException e){
-            Logger.debug("FAILED in handleRequest");
+        } // exceptions in worker methods are handled inside. This is for excepptions in reading the request. this is why requestId is set to -1
+         catch(JsonProcessingException e) {
+            Logger.error("FAILED in handleRequest");
+            status = new StatusServerMessage(-1, StatusMessageType.FAILURE, e.getMessage());
+        }
+        catch(IOException e) {
+            Logger.error("FAILED in handleRequest");
             status = new StatusServerMessage(-1, StatusMessageType.FAILURE, e.getMessage());
         }
 
@@ -99,32 +103,15 @@ public class Server {
             String serverStatusString = mapper.writeValueAsString(status);
             comm.sendMessageToClient(uid, serverStatusString);
         } catch(JsonProcessingException e) {
-            System.err.println(e);
+            Logger.error(e.getMessage());
         }
         catch(IOException e) {
-            System.err.println(e);
+            Logger.error(e.getMessage());
         }
         
     }
 
-
-    public void run() throws IOException {
-        while(true) {
-            ClientMessage clientMessage;
-
-            try {
-                clientMessage = comm.run();
-                
-                // handle request
-                handleRequest(clientMessage);
-
-            } catch(ClosedConnectionException e) {
-                int uid = e.getUid();
-                handleUserLogout(uid);
-            } 
-        }
-    }
-
+    
     private void handleUserLogout(int uid) {
         if(!idToUserMap.containsKey(uid)) {
             return;
@@ -132,7 +119,7 @@ public class Server {
         Logger.debug("User " + idToUserMap.get(uid).getName() + " logged out");
         User user = idToUserMap.get(uid);
         String username = user.getName();
-
+        
         for(Group group : user.getGroups()) {
             group.removeUser(user);
         }
@@ -141,7 +128,28 @@ public class Server {
         usernameToIdMap.remove(username);
         
     }
+    
+    public void run() {
+        while(true) {
+            ClientMessage clientMessage;
 
+            try {
+                clientMessage = comm.getClientRequest();
+                
+                // handle request
+                handleRequest(clientMessage);
+
+            } catch(ClosedConnectionException e) {
+                int uid = e.getUid();
+                handleUserLogout(uid);
+            } catch(IOException e) {
+                Logger.error("Error handling client request");
+                Logger.error(e.getMessage());
+                System.err.println(e.getStackTrace());
+            }
+        }
+    }
+    
     public static void main(String[] args) {
         try {
             Server server = new Server(8080);

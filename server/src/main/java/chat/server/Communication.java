@@ -17,8 +17,7 @@ class Communication {
     private TCPCommunication tcp = new TCPCommunication();
     
     private ServerSocketChannel serverSocket;
-    /* private static ByteBuffer buffer = ByteBuffer.allocate(1024); */
-    static int uid = 0;
+    IDGenerator idGen = new IDGenerator();
 
     Map<Integer, CommClient> clients = new HashMap<Integer, CommClient>();
 
@@ -45,7 +44,7 @@ class Communication {
         serverSocket.bind(new InetSocketAddress(port));
         serverSocket.configureBlocking(false); // must be non-blocking to allow selecting
         
-        // now, we create a Select instance
+        // now, we create a Selector instance
         selector = Selector.open();
         serverSocket.register(selector, SelectionKey.OP_ACCEPT);
         
@@ -56,9 +55,9 @@ class Communication {
         client.configureBlocking(false);
         SelectionKey clientKey = client.register(selector, SelectionKey.OP_READ); // register, this time with OP_READ because this socket is for reading, not receiving connections
         
-        CommClient newClient = new CommClient(uid, clientKey);
-        clients.put(uid, newClient);
-        ++uid;
+        int nextId = idGen.getId();
+        CommClient newClient = new CommClient(nextId, clientKey);
+        clients.put(nextId, newClient);
         clientKey.attach(newClient); // in order to associate key with client
     }
 
@@ -87,7 +86,7 @@ class Communication {
     }
 
     
-    ClientMessage run() throws ClosedConnectionException, IOException  {
+    ClientMessage getClientRequest() throws ClosedConnectionException, IOException  {
         while(true) {
             
             selector.select();
@@ -116,17 +115,11 @@ class Communication {
                             System.err.println(e1);
                         }
                         curr.cancel();
-                        throw new ClosedConnectionException(closedClient.getUid());
-                    } catch(IOException e) {
-                        System.err.println(e);
-                        continue;
-                    }
+                        throw new ClosedConnectionException(closedClient.getUid()); // will be caught in server to handle logout
+                    } 
 
                     CommClient client = (CommClient)curr.attachment();
 
-                    if(request == null) { // TODO: what to do in this case?
-                        continue;
-                    }
                     return new ClientMessage(client.getUid(), request);
                 }
             }
