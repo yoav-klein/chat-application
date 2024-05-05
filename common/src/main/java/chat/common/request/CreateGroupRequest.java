@@ -1,7 +1,7 @@
 package chat.common.request;
 
 public class CreateGroupRequest extends Request {
-    public String groupName;
+    private String groupName;
 
     public CreateGroupRequest() {
         this(0, "deadbeef");
@@ -10,6 +10,10 @@ public class CreateGroupRequest extends Request {
     public CreateGroupRequest(int requestId, String groupName) {
         super(RequestType.CREATE_GROUP, requestId);
         this.groupName = groupName;
+    }
+
+    public String getGroupName() {
+        return groupName;
     }
     
     
