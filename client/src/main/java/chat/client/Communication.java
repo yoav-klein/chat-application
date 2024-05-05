@@ -8,12 +8,12 @@ import java.io.IOException;
 import chat.common.util.*;
 import chat.common.exception.*;
 
-public class Communication {
+class Communication {
     
     private SocketChannel channel = SocketChannel.open();
     private TCPCommunication tcp = new TCPCommunication();
     
-    Communication(String serverHost, int serverPort) throws IOException {
+    public Communication(String serverHost, int serverPort) throws IOException {
         channel.connect(new InetSocketAddress(serverHost, 8080));
         channel.configureBlocking(true);
         

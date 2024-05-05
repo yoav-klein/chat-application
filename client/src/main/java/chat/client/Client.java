@@ -1,6 +1,8 @@
 package chat.client;
 
 import java.io.IOException;
+
+import chat.common.exception.TimeoutException;
 import chat.common.request.*;
 import chat.common.servermessage.StatusPayload;
 import chat.common.util.Logger;
@@ -16,8 +18,36 @@ public class Client {
     private Object synchronizer;
     private StatusPayload currentStatus;
     private UserInterface userInterface;
+    
+    public Client(String serverHost, int port) throws IOException {
+        this.currentStatus = new StatusPayload();
+        this.synchronizer = new Object();
+        this.comm = new Communication(serverHost, port);
+        
+        RequestManager requestManager = initRequestManager();
+        
+        this.userInterface = new ConsoleInterface(requestManager);
+        this.serverThread = new ServerThread(comm, synchronizer, currentStatus, userInterface);
 
-    RequestManager initRequestManager() {
+        serverThread.start();
+    }
+
+    public Client(String serverHost, int port, MockInterface userInterface) throws IOException {
+        this.currentStatus = new StatusPayload();
+        this.synchronizer = new Object();
+        this.comm = new Communication(serverHost, port);
+        
+        RequestManager requestManager = initRequestManager();
+        
+        this.userInterface = userInterface;
+        this.userInterface.setRequestManager(requestManager);
+        this.serverThread = new ServerThread(comm, synchronizer, currentStatus, userInterface);
+
+        serverThread.start();
+    }
+
+
+    private RequestManager initRequestManager() {
         RequestManager requestManager = new RequestManager();
         requestManager.addOption(new LoginOption());
         requestManager.addOption(new SendMessageToUserOption());
@@ -30,34 +60,7 @@ public class Client {
         return requestManager;
     }
     
-    public Client() throws IOException {
-        this.currentStatus = new StatusPayload();
-        this.synchronizer = new Object();
-        this.comm = new Communication("127.0.0.1", 8080);
-        
-        RequestManager requestManager = initRequestManager();
-        
-        this.userInterface = new ConsoleInterface(requestManager);
-        this.serverThread = new ServerThread(comm, synchronizer, currentStatus, userInterface);
-
-        serverThread.start();
-    }
-
-    public Client(MockInterface userInterface) throws IOException {
-        this.currentStatus = new StatusPayload();
-        this.synchronizer = new Object();
-        this.comm = new Communication("127.0.0.1", 8080);
-        
-        RequestManager requestManager = initRequestManager();
-        
-        this.userInterface = userInterface;
-        this.userInterface.setRequestManager(requestManager);
-        this.serverThread = new ServerThread(comm, synchronizer, currentStatus, userInterface);
-
-        serverThread.start();
-    }
-
-    void sendRequestToServer(Request request) {
+    private void sendRequestToServer(Request request) throws IOException {
         try {
             ObjectMapper mapper = new ObjectMapper();
             String requestJson;
@@ -66,51 +69,65 @@ public class Client {
             
             comm.writeToServer(requestJson);
         } catch(IOException e) {
-            System.err.println("couldn't send to server");
-            System.err.println(e);
+            Logger.error("Couldn't send request to server: " + e);
+            throw e;
         }
     }
     
-    void waitForResponse(Request request) {
-        
-        while(currentStatus.requestId != request.getRequestId()) {
-            try {
-                synchronized(synchronizer) {
-                    synchronizer.wait();
+    private void waitForResponse(Request request) throws TimeoutException {
+        synchronized(synchronizer) {    
+            long startTime = System.currentTimeMillis();
+            long elapsedTime = 0;
+            long timeoutMillis = 10000;
+
+            while (currentStatus.requestId != request.getRequestId() && elapsedTime < timeoutMillis) {
+                try {
+                    synchronizer.wait(timeoutMillis - elapsedTime); // Wait for the remaining time
+                } catch(InterruptedException e) {
+                    Logger.error("Interrupted: " + e);
                 }
-                
-            } catch(InterruptedException e) {}
+                elapsedTime = System.currentTimeMillis() - startTime;
+            }
+    
+            if (currentStatus.requestId != request.getRequestId()) {
+                throw new TimeoutException();
+            }
+            
         }
     }
 
     public void run() {
         try {
             
-            boolean shouldRun = true;
-            while(shouldRun) {
+            while(true) {
 
                 Request request = userInterface.getRequest();
+                
+                if(serverThread.isConnectionClosed()) {
+                    System.out.println("Server closed connection");
+                    break;
+                }
+
                 sendRequestToServer(request);
                 waitForResponse(request);
 
                 userInterface.processStatusMessage(currentStatus);
                 
-                if(serverThread.isConnectionClosed()) {
-                    System.out.println("Server closed connection");
-                    shouldRun = false;
-                }
-                
             }
             serverThread.join();
             
         } catch(InterruptedException e) {
-            System.out.println("Interrupted: " + e);
+           Logger.error("Interrupted: " + e);
+        } catch(TimeoutException e) {
+            Logger.error("Timeout waiting for response from server");
+        } catch(IOException e) {
+            Logger.error("IOException: " + e);
         }
 
     }
 
     public static void main(String[] args) throws IOException {
-        Client client = new Client();
+        Client client = new Client("127.0.0.1", 8080);
         client.run();
     }
 }
