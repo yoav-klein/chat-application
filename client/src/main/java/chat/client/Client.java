@@ -108,8 +108,20 @@ public class Client {
                     break;
                 }
 
-                sendRequestToServer(request);
-                waitForResponse(request);
+                try {
+                    sendRequestToServer(request);
+                } catch(IOException e) {
+                    Logger.error("Error sending request to server: " + e);
+                    continue;
+                }
+
+
+                try {
+                    waitForResponse(request);
+                } catch(TimeoutException e) {
+                    Logger.error("Timeout waiting for response from server");
+                    continue;
+                }
 
                 userInterface.processStatusMessage(currentStatus);
                 
@@ -118,11 +130,7 @@ public class Client {
             
         } catch(InterruptedException e) {
            Logger.error("Interrupted: " + e);
-        } catch(TimeoutException e) {
-            Logger.error("Timeout waiting for response from server");
-        } catch(IOException e) {
-            Logger.error("IOException: " + e);
-        }
+        } 
 
     }
 
