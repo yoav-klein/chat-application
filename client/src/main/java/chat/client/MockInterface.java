@@ -38,19 +38,15 @@ public class MockInterface extends UserInterface {
 
     @Override
     public Request getRequest() {
-        Logger.debug("In getRequest");
-        while(synchronizer.requestReady == false) {
-            synchronized(synchronizer) {
-                Logger.debug("Before wait");
+        synchronized(synchronizer) {
+            while(synchronizer.requestReady == false) {
                 try {
                     synchronizer.wait();
                 } catch(InterruptedException e) {
                     e.printStackTrace();
                 }
-                Logger.debug("In getRequest Got notified");
             }
         }
-        Logger.debug("Outside while loop");
         
         Request request = null;
         for(Option option : reqMan.getOptionList()) {
