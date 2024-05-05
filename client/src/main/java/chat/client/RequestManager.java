@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import chat.client.option.Option;
-import chat.common.request.Request;
 
 public class RequestManager {
         

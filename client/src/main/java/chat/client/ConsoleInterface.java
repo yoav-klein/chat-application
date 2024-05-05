@@ -13,20 +13,17 @@ import chat.common.request.Request;
 import chat.common.servermessage.ChatPayload;
 import chat.common.servermessage.StatusMessageType;
 import chat.common.servermessage.StatusPayload;
-import chat.common.util.Logger;
 
-public class ConsoleInterface implements UserInterface {
+public class ConsoleInterface extends UserInterface {
     private static class RequestContainer {
         public Request currRequest;
     }
 
     
     RequestContainer current = new RequestContainer();
-    RequestManager reqManager;
     ConsoleMenu consoleMenu = new ConsoleMenu("Main Menu");
     
-    
-    ConsoleInterface (RequestManager reqManager) {
+    ConsoleInterface (RequestManager requestManager) {
         class GeneralCommand implements Command {
             Option option;
             RequestContainer currentRequest;
@@ -59,9 +56,9 @@ public class ConsoleInterface implements UserInterface {
             }
         }
         
-        this.reqManager = reqManager;
+        this.requestManager = requestManager;
 
-        List<Option> optlist = reqManager.getOptionList();
+        List<Option> optlist = requestManager.getOptionList();
         for(Option op : optlist) {
 	        consoleMenu.addMenuItem(op.getDescription(), new GeneralCommand(op, current));
         }
