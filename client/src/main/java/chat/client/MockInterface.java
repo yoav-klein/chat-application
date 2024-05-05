@@ -26,15 +26,11 @@ public class MockInterface extends UserInterface {
     }
 
     private RequestManager reqMan;
-    private Synchronizer synchronizer;
+    private Synchronizer synchronizer = new Synchronizer();
     private CurrentRequest currentRequest = new CurrentRequest();
     private CurrentResponse currentResponse = new CurrentResponse();
     
-    MockInterface(Synchronizer synchronizer) {
-        this.synchronizer = synchronizer;
-    }
-
-    
+    MockInterface() {}
 
     public void setRequestManager(RequestManager reqMan) {
         this.reqMan = reqMan;
@@ -51,7 +47,7 @@ public class MockInterface extends UserInterface {
                 } catch(InterruptedException e) {
                     e.printStackTrace();
                 }
-                Logger.debug("Got notified");
+                Logger.debug("In getRequest Got notified");
             }
         }
         Logger.debug("Outside while loop");
@@ -71,7 +67,7 @@ public class MockInterface extends UserInterface {
         currentResponse.statusPayload = response;
         synchronizer.statusReady = true;
         synchronized(synchronizer) {
-            synchronizer.notify();
+            synchronizer.notifyAll();
         }
     }
 
@@ -80,7 +76,7 @@ public class MockInterface extends UserInterface {
         currentResponse.chatPayload = response;
         synchronizer.chatReady = true;
         synchronized(synchronizer) {
-            synchronizer.notify();
+            synchronizer.notifyAll();
         }
     }
 
@@ -90,27 +86,13 @@ public class MockInterface extends UserInterface {
         currentRequest.values = values;
         synchronized(synchronizer) {
             synchronizer.requestReady = true;
-            synchronizer.notify();
+            synchronizer.notifyAll();
         }
-    }
-
-    private void waitForResponse(Boolean b) {
-        while(b == false) {
-            synchronized(synchronizer) {
-                try {
-                    synchronizer.wait();
-                } catch(InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        b = false;
-
     }
     
     public StatusPayload getStatusPayload() {
-        while(synchronizer.statusReady == false) {
-            synchronized(synchronizer) {
+        synchronized(synchronizer) {
+            while(synchronizer.statusReady == false) {
                 try {
                     synchronizer.wait();
                 } catch(InterruptedException e) {
@@ -119,13 +101,12 @@ public class MockInterface extends UserInterface {
             }
         }
         synchronizer.statusReady = false;
-        // waitForResponse(synchronizer.statusReady);
         return currentResponse.statusPayload;
     }
 
     public ChatPayload getChatPayload() {
-        while(synchronizer.chatReady == false) {
-            synchronized(synchronizer) {
+        synchronized(synchronizer) {
+            while(synchronizer.chatReady == false) {
                 try {
                     synchronizer.wait();
                 } catch(InterruptedException e) {
@@ -134,7 +115,6 @@ public class MockInterface extends UserInterface {
             }
         }
         synchronizer.chatReady = false;
-        // waitForResponse(synchronizer.chatReady);
         return currentResponse.chatPayload;
     }
 
