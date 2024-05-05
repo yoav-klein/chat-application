@@ -5,9 +5,9 @@ import java.util.List;
 
 import chat.client.option.Option;
 
-public class RequestManager {
+class RequestManager {
         
-    List<Option> options = new ArrayList<>();;
+    private List<Option> options = new ArrayList<>();
     
     void addOption(Option opt) { options.add(opt); }
     List<Option> getOptionList() { return options;  }

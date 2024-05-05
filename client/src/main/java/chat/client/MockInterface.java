@@ -30,12 +30,12 @@ public class MockInterface extends UserInterface {
     
     public MockInterface() {}
 
-    public void setRequestManager(RequestManager reqMan) {
+    void setRequestManager(RequestManager reqMan) {
         this.reqMan = reqMan;
     }
 
     @Override
-    public Request getRequest() {
+    Request getRequest() {
         synchronized(synchronizer) {
             while(synchronizer.requestReady == false) {
                 try {
@@ -57,7 +57,7 @@ public class MockInterface extends UserInterface {
     }
 
     @Override
-    public void processStatusMessage(StatusPayload response) {
+    void processStatusMessage(StatusPayload response) {
         currentResponse.statusPayload = response;
         synchronizer.statusReady = true;
         synchronized(synchronizer) {
@@ -66,7 +66,7 @@ public class MockInterface extends UserInterface {
     }
 
     @Override
-    public void processChatMessage(ChatPayload response) {
+    void processChatMessage(ChatPayload response) {
         currentResponse.chatPayload = response;
         synchronizer.chatReady = true;
         synchronized(synchronizer) {

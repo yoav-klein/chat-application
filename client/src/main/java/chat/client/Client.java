@@ -32,7 +32,7 @@ public class Client {
         serverThread.start();
     }
 
-    public Client(String serverHost, int port, MockInterface userInterface) throws IOException {
+    public Client(String serverHost, int port, UserInterface userInterface) throws IOException {
         this.currentStatus = new StatusPayload();
         this.synchronizer = new Object();
         this.comm = new Communication(serverHost, port);

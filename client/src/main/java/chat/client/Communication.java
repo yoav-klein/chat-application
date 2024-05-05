@@ -13,17 +13,17 @@ class Communication {
     private SocketChannel channel = SocketChannel.open();
     private TCPCommunication tcp = new TCPCommunication();
     
-    public Communication(String serverHost, int serverPort) throws IOException {
+    Communication(String serverHost, int serverPort) throws IOException {
         channel.connect(new InetSocketAddress(serverHost, 8080));
         channel.configureBlocking(true);
         
     }
 
-    public void writeToServer(String message) throws IOException {
+    void writeToServer(String message) throws IOException {
         tcp.writeToChannel(this.channel, message);
     }
 
-    public String readFromServer() throws ClosedConnectionException, IOException {
+    String readFromServer() throws ClosedConnectionException, IOException {
         return tcp.readFromChannel(this.channel);
     }
 

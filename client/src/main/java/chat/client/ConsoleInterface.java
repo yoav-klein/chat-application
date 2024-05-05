@@ -14,7 +14,7 @@ import chat.common.servermessage.ChatPayload;
 import chat.common.servermessage.StatusMessageType;
 import chat.common.servermessage.StatusPayload;
 
-public class ConsoleInterface extends UserInterface {
+class ConsoleInterface extends UserInterface {
     private static class RequestContainer {
         public Request currRequest;
     }
@@ -65,14 +65,14 @@ public class ConsoleInterface extends UserInterface {
 
     }
 
-    public Request getRequest() {
+    Request getRequest() {
         consoleMenu.displayMenu();
         consoleMenu.getUserChoice();
         
         return current.currRequest;
     }
 
-    public void processStatusMessage(StatusPayload response) {
+    void processStatusMessage(StatusPayload response) {
         switch(current.currRequest.getType()) {
             case LOGIN:
             case SEND_MESSAGE_TO_USER:
@@ -107,7 +107,7 @@ public class ConsoleInterface extends UserInterface {
             }
     }
 
-    public void processChatMessage(ChatPayload response) {
+    void processChatMessage(ChatPayload response) {
         System.out.println(response.from + "-> " + response.to + ": " + response.message);
     }
 }

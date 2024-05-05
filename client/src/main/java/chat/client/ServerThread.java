@@ -3,7 +3,6 @@ package chat.client;
 
 import java.io.IOException;
 import chat.common.exception.*;
-import chat.common.servermessage.ChatMessageType;
 import chat.common.servermessage.ChatPayload;
 import chat.common.servermessage.ServerMessageType;
 import chat.common.servermessage.StatusPayload;

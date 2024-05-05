@@ -7,11 +7,11 @@ import chat.common.servermessage.StatusPayload;
 public abstract class UserInterface {
     protected RequestManager requestManager;
 
-    abstract public Request getRequest();
+    abstract Request getRequest();
 
-    abstract public void processStatusMessage(StatusPayload response);
+    abstract void processStatusMessage(StatusPayload response);
 
-    abstract public void processChatMessage(ChatPayload response);
+    abstract void processChatMessage(ChatPayload response);
 
-    public void setRequestManager(RequestManager reqMan) { this.requestManager = requestManager; }    
+    void setRequestManager(RequestManager reqMan) { this.requestManager = requestManager; }    
 }
