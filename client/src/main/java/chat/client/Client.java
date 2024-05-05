@@ -43,7 +43,7 @@ public class Client {
         serverThread.start();
     }
 
-    void sendRequest(Request request) {
+    void sendRequestToServer(Request request) {
         try {
             ObjectMapper mapper = new ObjectMapper();
             String requestJson;
@@ -77,7 +77,7 @@ public class Client {
                 Logger.debug("calling getRequest");
 
                 Request request = userInterface.getRequest();
-                sendRequest(request);
+                sendRequestToServer(request);
                 waitForResponse(request);
 
                 userInterface.processStatusMessage(currentStatus);
