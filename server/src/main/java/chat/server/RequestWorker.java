@@ -78,13 +78,14 @@ class RequestWorker {
     }
 
     StatusServerMessage createGroup(User user, CreateGroupRequest request) {
-        if(groupnameToGroup.containsKey(request.groupName)) {
-            return new StatusServerMessage(request.getRequestId(), StatusMessageType.BAD_REQUEST, "Group already exists: " + request.groupName);
+        String groupName = request.getGroupName();
+        if(groupnameToGroup.containsKey(groupName)) {
+            return new StatusServerMessage(request.getRequestId(), StatusMessageType.BAD_REQUEST, "Group already exists: " + groupName);
         }
         
-        Group newGroup = new Group(request.groupName, user);
+        Group newGroup = new Group(groupName, user);
         
-        groupnameToGroup.put(request.groupName, newGroup);
+        groupnameToGroup.put(groupName, newGroup);
 
         return new StatusServerMessage(request.getRequestId(), StatusMessageType.SUCCESS, "Created new group successfully");
 
