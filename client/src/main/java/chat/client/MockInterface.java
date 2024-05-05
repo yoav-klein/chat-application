@@ -28,7 +28,7 @@ public class MockInterface extends UserInterface {
     private CurrentRequest currentRequest = new CurrentRequest();
     private CurrentResponse currentResponse = new CurrentResponse();
     
-    MockInterface() {}
+    public MockInterface() {}
 
     public void setRequestManager(RequestManager reqMan) {
         this.reqMan = reqMan;
