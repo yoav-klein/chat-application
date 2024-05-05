@@ -26,7 +26,7 @@ public class Server {
     private Communication comm;
     private RequestWorker worker;
     
-    Server(int port) throws IOException {
+    public Server(int port) throws IOException {
         comm = new Communication(port);
         worker = new RequestWorker(comm, idToUserMap, usernameToIdMap, groupnameToGroup);
     }
@@ -108,7 +108,7 @@ public class Server {
     }
 
 
-    private void run() throws IOException {
+    public void run() throws IOException {
         while(true) {
             ClientMessage clientMessage;
 

@@ -11,4 +11,4 @@ plugins {
 }
 
 rootProject.name = 'Chat'
-include('server', 'client', 'common')
+include('server', 'client', 'common', 'integration')

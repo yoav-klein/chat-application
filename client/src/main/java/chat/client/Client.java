@@ -87,7 +87,7 @@ public class Client {
         }
     }
 
-    void run() {
+    public void run() {
         try {
             
             boolean shouldRun = true;
