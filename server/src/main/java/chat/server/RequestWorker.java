@@ -12,6 +12,7 @@ import chat.common.request.JoinGroupRequest;
 import chat.common.request.LeaveGroupRequest;
 import chat.common.request.ListGroupsRequest;
 import chat.common.request.ListUsersInGroupRequest;
+import chat.common.request.LoginRequest;
 import chat.common.request.SendMessageToGroupRequest;
 import chat.common.request.SendMessageToUserRequest;
 import chat.common.servermessage.ChatMessageType;
@@ -45,6 +46,21 @@ class RequestWorker {
         }
 
         return statusMessage;
+    }
+
+
+    StatusServerMessage login(int clientUid, LoginRequest request) {
+        
+        if(idToUserMap.containsKey(clientUid)) { // new user
+            return new StatusServerMessage(request.getRequestId(), StatusMessageType.BAD_REQUEST, "User already logged in");
+        }
+        
+        User newUser = new User(request.getUserName());
+        idToUserMap.put(clientUid, newUser);
+        usernameToIdMap.put(request.getUserName(), clientUid);
+
+        // return response to client
+        return new StatusServerMessage(request.getRequestId(), StatusMessageType.SUCCESS, "client registered");
     }
 
     StatusServerMessage sendMessageToUser(String from, SendMessageToUserRequest request) {

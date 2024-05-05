@@ -1,11 +1,7 @@
 package chat.client;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-
 import chat.common.request.*;
-import chat.common.servermessage.StatusMessageType;
 import chat.common.servermessage.StatusPayload;
 import chat.common.util.Logger;
 import chat.client.option.*;
@@ -23,6 +19,7 @@ public class Client {
 
     RequestManager initRequestManager() {
         RequestManager requestManager = new RequestManager();
+        requestManager.addOption(new LoginOption());
         requestManager.addOption(new SendMessageToUserOption());
         requestManager.addOption(new SendMessageToGroupOption());
         requestManager.addOption(new CreateGroupOption());
@@ -46,38 +43,6 @@ public class Client {
         serverThread.start();
     }
 
-    private void initConnection() throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
-
-        while(true) {
-            System.out.println("Enter your username");
-            String userName = new BufferedReader(new InputStreamReader(System.in)).readLine();
-            
-            ClientHelloRequest clientHello = new ClientHelloRequest(userName, IDGenerator.getInstance().getId());
-            String commandJson = mapper.writeValueAsString(clientHello);
-            comm.writeToServer(commandJson);
-
-
-            while(currentStatus.requestId != IDGenerator.getInstance().getCurrent())
-            {
-                try {
-                    synchronized(synchronizer) {
-                        synchronizer.wait();
-                    }
-                } catch(InterruptedException e) {}
-            }
-
-            if(currentStatus.status != StatusMessageType.SUCCESS) {
-                System.err.println("Login to server failed");
-                System.err.println(currentStatus.status);
-                System.err.println(currentStatus.message);
-            } else {
-                break;
-            }
-        }
-
-    }
-
     void sendRequest(Request request) {
         try {
             ObjectMapper mapper = new ObjectMapper();
@@ -93,20 +58,20 @@ public class Client {
     }
     
     void waitForResponse(Request request) {
+        
         while(currentStatus.requestId != request.getRequestId()) {
             try {
                 synchronized(synchronizer) {
                     synchronizer.wait();
                 }
-                Logger.debug("waitForResponse woke up " );
+                
             } catch(InterruptedException e) {}
         }
     }
 
     void run() {
         try {
-            initConnection();
-
+            
             boolean shouldRun = true;
             while(shouldRun) {
                 Logger.debug("calling getRequest");
@@ -125,9 +90,6 @@ public class Client {
             }
             serverThread.join();
             
-        } catch(IOException e) {
-            System.err.println("Error");
-            System.err.println(e);
         } catch(InterruptedException e) {
             System.out.println("Interrupted: " + e);
         }

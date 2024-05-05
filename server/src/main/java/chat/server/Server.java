@@ -10,8 +10,6 @@ import java.io.IOException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
-
 import chat.common.request.*;
 import chat.common.servermessage.StatusMessageType;
 import chat.common.servermessage.StatusServerMessage;
@@ -37,38 +35,55 @@ public class Server {
         String requestString = clientMessage.getMessage();
         int uid = clientMessage.getUid();
 
+
         ObjectMapper mapper = new ObjectMapper();
         ServerMessage status;
         try {
             RequestType type = RequestType.valueOf(mapper.readTree(requestString).get("type").textValue());
+            
+
+            // check if user is logged in
+            if(!idToUserMap.containsKey(uid) && type != RequestType.LOGIN) {
+                int requestId = mapper.readTree(requestString).get("requestId").intValue();
+                status = new StatusServerMessage(requestId, StatusMessageType.BAD_REQUEST, "User not logged in");
+                String serverStatusString = mapper.writeValueAsString(status);
+                comm.sendMessageToClient(uid, serverStatusString);
+                return;
+            }
+
             switch(type) {
+                case LOGIN:
+                    Logger.debug("LOGIN");
+                    status = worker.login(uid, mapper.readValue(requestString, LoginRequest.class));
+                    break;
+
                 case SEND_MESSAGE_TO_USER:
                     Logger.debug("SEND_MESSAGE_TO_USER");
-                    status = worker.sendMessageToUser(idToUserMap.get(uid).getName(), mapper.readValue(clientMessage.getMessage(), SendMessageToUserRequest.class));
+                    status = worker.sendMessageToUser(idToUserMap.get(uid).getName(), mapper.readValue(requestString, SendMessageToUserRequest.class));
                     break;
                 case CREATE_GROUP:
                     Logger.debug("CREATE_GROUP");
-                    status = worker.createGroup(idToUserMap.get(uid), mapper.readValue(clientMessage.getMessage(), CreateGroupRequest.class));
+                    status = worker.createGroup(idToUserMap.get(uid), mapper.readValue(requestString, CreateGroupRequest.class));
                     break;
                 case SEND_MESSAGE_TO_GROUP:
                     Logger.debug("SEND_MESSAGE_TO_GROUP");
-                    status = worker.sendMessageToGroup(idToUserMap.get(uid), mapper.readValue(clientMessage.getMessage(), SendMessageToGroupRequest.class));
+                    status = worker.sendMessageToGroup(idToUserMap.get(uid), mapper.readValue(requestString, SendMessageToGroupRequest.class));
                     break;
                 case JOIN_GROUP:
                     Logger.debug("JOIN_GROUP");
-                    status = worker.joinGroup(idToUserMap.get(uid), mapper.readValue(clientMessage.getMessage(), JoinGroupRequest.class));
+                    status = worker.joinGroup(idToUserMap.get(uid), mapper.readValue(requestString, JoinGroupRequest.class));
                     break;
                 case LIST_USERS_IN_GROUP:
                     Logger.debug("LIST_USERS_IN_GROUP");
-                    status = worker.listUsersInGroup(idToUserMap.get(uid), mapper.readValue(clientMessage.getMessage(), ListUsersInGroupRequest.class));
+                    status = worker.listUsersInGroup(idToUserMap.get(uid), mapper.readValue(requestString, ListUsersInGroupRequest.class));
                     break;
                 case LEAVE_GROUP:
                     Logger.debug("LEAVE_GROUP");
-                    status = worker.leaveGroup(idToUserMap.get(uid), mapper.readValue(clientMessage.getMessage(), LeaveGroupRequest.class));
+                    status = worker.leaveGroup(idToUserMap.get(uid), mapper.readValue(requestString, LeaveGroupRequest.class));
                     break;
                 case LIST_GROUPS_OF_USER:
                     Logger.debug("LIST_GROUPS_OF_USER");
-                    status = worker.listGroupsOfUser(idToUserMap.get(uid), mapper.readValue(clientMessage.getMessage(), ListGroupsRequest.class));
+                    status = worker.listGroupsOfUser(idToUserMap.get(uid), mapper.readValue(requestString, ListGroupsRequest.class));
                     break;
 
                 default:
@@ -92,35 +107,6 @@ public class Server {
         
     }
 
-    private void registerUser(ClientMessage message) throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
-        ClientHelloRequest clientHello;
-        StatusServerMessage status;
-        int uid = message.getUid();
-
-        try {
-            clientHello = mapper.readValue(message.getMessage(), ClientHelloRequest.class);
-
-            if(usernameToIdMap.containsKey(clientHello.getUserName())) {
-                status = new StatusServerMessage(clientHello.getRequestId(), StatusMessageType.FAILURE, "Username already exists");
-            } else {
-                User newUser = new User(clientHello.getUserName());
-                idToUserMap.put(uid, newUser);
-                usernameToIdMap.put(clientHello.getUserName(), uid);
-        
-                // return response to client
-                status = new StatusServerMessage(clientHello.getRequestId(), StatusMessageType.SUCCESS, "client registered");
-            }
-
-        }
-
-        catch(UnrecognizedPropertyException e) {
-            status = new StatusServerMessage(-1, StatusMessageType.BAD_REQUEST, "Not a ClientHello message");
-        }
-
-        String serverStatusString = mapper.writeValueAsString(status);
-        comm.sendMessageToClient(uid, serverStatusString);
-    }
 
     private void run() throws IOException {
         while(true) {
@@ -128,14 +114,7 @@ public class Server {
 
             try {
                 clientMessage = comm.run();
-                int uid = clientMessage.getUid();
-
-                if(!idToUserMap.containsKey(uid)) { // new user
-                    registerUser(clientMessage);
-                    
-                    continue;
-                }
-
+                
                 // handle request
                 handleRequest(clientMessage);
 
@@ -147,6 +126,9 @@ public class Server {
     }
 
     private void handleUserLogout(int uid) {
+        if(!idToUserMap.containsKey(uid)) {
+            return;
+        }
         Logger.debug("User " + idToUserMap.get(uid).getName() + " logged out");
         User user = idToUserMap.get(uid);
         String username = user.getName();

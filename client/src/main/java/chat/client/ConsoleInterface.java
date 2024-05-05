@@ -77,7 +77,7 @@ public class ConsoleInterface implements UserInterface {
 
     public void processStatusMessage(StatusPayload response) {
         switch(current.currRequest.getType()) {
-            case CLIENT_HELLO:
+            case LOGIN:
             case SEND_MESSAGE_TO_USER:
             case SEND_MESSAGE_TO_GROUP:
             case CREATE_GROUP:
