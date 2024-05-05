@@ -2,13 +2,9 @@ package chat.client;
 
 import java.io.IOException;
 import chat.common.request.*;
-import chat.common.servermessage.ChatPayload;
 import chat.common.servermessage.StatusPayload;
 import chat.common.util.Logger;
 import chat.client.option.*;
-
-import java.util.Map;
-import java.util.HashMap;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -92,7 +88,6 @@ public class Client {
             
             boolean shouldRun = true;
             while(shouldRun) {
-                Logger.debug("calling getRequest");
 
                 Request request = userInterface.getRequest();
                 sendRequestToServer(request);
