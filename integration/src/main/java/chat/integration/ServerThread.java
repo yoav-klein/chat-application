@@ -14,11 +14,6 @@ class ServerThread extends Thread {
 
     @Override
     public void run()  {
-        try {
-            server.run();
-        } catch(IOException e) {
-            System.err.println("Couldn't run server");
-            System.err.println(e);
-        }
+        server.run();
     }
 }
