@@ -66,14 +66,14 @@ class ServerThread extends Thread {
                 
             }
         } catch(ClosedConnectionException e) {
-            System.err.println("ClosedConnectionException");
+            Logger.info("ClosedConnectionException");
             shouldStop = true;
             return;
         } catch(JsonParseException e) {
-            System.err.println(e);
+            Logger.error(e.getMessage());
             return;
         } catch(IOException e) {
-            System.err.println(e);
+            Logger.error(e.getMessage());
             shouldStop = true;
             return;
         } 
