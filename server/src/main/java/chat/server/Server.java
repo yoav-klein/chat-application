@@ -31,7 +31,7 @@ public class Server {
         worker = new RequestWorker(comm, idToUserMap, usernameToIdMap, groupnameToGroup);
     }
     
-    private void handleRequest(ClientMessage clientMessage) {
+    private ServerMessage handleRequest(ClientMessage clientMessage) {
         String requestString = clientMessage.getMessage();
 
         int uid = clientMessage.getUid();
@@ -47,7 +47,7 @@ public class Server {
                 status = new StatusServerMessage(requestId, StatusMessageType.BAD_REQUEST, "User not logged in");
                 String serverStatusString = mapper.writeValueAsString(status);
                 comm.sendMessageToClient(uid, serverStatusString);
-                return;
+                return status;
             }
 
             switch(type) {
@@ -99,8 +99,14 @@ public class Server {
             status = new StatusServerMessage(-1, StatusMessageType.FAILURE, e.getMessage());
         }
 
+        return status;
+        
+    }
+
+    private void sendResponse(ServerMessage message, int uid) {
+        ObjectMapper mapper = new ObjectMapper();
         try {
-            String serverStatusString = mapper.writeValueAsString(status);
+            String serverStatusString = mapper.writeValueAsString(message);
             comm.sendMessageToClient(uid, serverStatusString);
         } catch(JsonProcessingException e) {
             Logger.error(e.getMessage());
@@ -108,7 +114,6 @@ public class Server {
         catch(IOException e) {
             Logger.error(e.getMessage());
         }
-        
     }
 
     
@@ -130,14 +135,14 @@ public class Server {
     }
     
     public void run() {
+        ClientMessage clientMessage;
         while(true) {
-            ClientMessage clientMessage;
-
             try {
                 clientMessage = comm.getClientRequest();
                 
                 // handle request
-                handleRequest(clientMessage);
+                ServerMessage response = handleRequest(clientMessage);
+                sendResponse(response, clientMessage.getUid());
 
             } catch(ClosedConnectionException e) {
                 int uid = e.getUid();

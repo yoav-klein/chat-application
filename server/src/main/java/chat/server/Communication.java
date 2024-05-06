@@ -65,13 +65,13 @@ class Communication {
     private String readClientRequest(SelectionKey selectionKey) throws IOException, ClosedConnectionException {
         SocketChannel client = (SocketChannel)selectionKey.channel();
 
-        String command;
+        String message;
         try {
-            command = tcp.readFromChannel(client);
+            message = tcp.readFromChannel(client);
         } catch(java.net.SocketException e) {
             throw new ClosedConnectionException();
         }
-        return command;
+        return message;
     }
     
 
@@ -103,11 +103,11 @@ class Communication {
                 }
 
                 if(curr.isReadable()) {
+                    CommClient client = (CommClient)curr.attachment();
                     String request;
                     try {
                         request = readClientRequest(curr);
                     } catch(ClosedConnectionException e) {
-                        CommClient closedClient = (CommClient)curr.attachment();
                         try {
                             curr.channel().close();
                         } catch(IOException e1) {
@@ -115,10 +115,9 @@ class Communication {
                             System.err.println(e1);
                         }
                         curr.cancel();
-                        throw new ClosedConnectionException(closedClient.getUid()); // will be caught in server to handle logout
+                        throw new ClosedConnectionException(client.getUid()); // will be caught in server to handle logout
                     } 
 
-                    CommClient client = (CommClient)curr.attachment();
 
                     return new ClientMessage(client.getUid(), request);
                 }
