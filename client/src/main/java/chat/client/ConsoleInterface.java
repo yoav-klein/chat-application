@@ -83,24 +83,24 @@ class ConsoleInterface extends UserInterface {
                 if(response.status == StatusMessageType.SUCCESS) {
                     System.out.println(response.message);
                 } else {
-                    System.out.println("Request failed");
-                    System.out.println(response.message);
+                    System.err.println("Request failed");
+                    System.err.println(response.message);
                 }
                 break;
             case LIST_USERS_IN_GROUP:
                 if(response.status == StatusMessageType.SUCCESS) {
                     System.out.println("Users in group: " + response.message);
                 } else {
-                    System.out.println("Request failed");
-                    System.out.println(response.message);
+                    System.err.println("Request failed");
+                    System.err.println(response.message);
                 }
                 break;
             case LIST_GROUPS_OF_USER:
                 if(response.status == StatusMessageType.SUCCESS) {
                     System.out.println("Your groups: " + response.message);
                 } else {
-                    System.out.println("Request failed");
-                    System.out.println(response.message);
+                    System.err.println("Request failed");
+                    System.err.println(response.message);
                 }
                 System.out.println(response.message);
                 break;

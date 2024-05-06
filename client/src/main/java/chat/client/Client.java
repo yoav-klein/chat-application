@@ -75,12 +75,13 @@ public class Client {
     }
     
     private void waitForResponse(Request request) throws TimeoutException {
-        synchronized(synchronizer) {    
-            long startTime = System.currentTimeMillis();
-            long elapsedTime = 0;
-            long timeoutMillis = 10000;
+        long startTime = System.currentTimeMillis();
+        long elapsedTime = 0;
+        long timeoutMillis = 10000;
 
-            while (currentStatus.requestId != request.getRequestId() && elapsedTime < timeoutMillis) {
+        synchronized(synchronizer) {    
+            
+            while (currentStatus.requestId != request.getRequestId() && currentStatus.requestId != -1 && elapsedTime < timeoutMillis) {
                 try {
                     synchronizer.wait(timeoutMillis - elapsedTime); // Wait for the remaining time
                 } catch(InterruptedException e) {
@@ -88,11 +89,10 @@ public class Client {
                 }
                 elapsedTime = System.currentTimeMillis() - startTime;
             }
-    
-            if (currentStatus.requestId != request.getRequestId()) {
-                throw new TimeoutException();
-            }
-            
+        
+        }
+        if (currentStatus.requestId != request.getRequestId() && currentStatus.requestId != -1) {
+            throw new TimeoutException();
         }
     }
 
