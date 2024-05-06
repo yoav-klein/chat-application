@@ -15,3 +15,8 @@ application {
     // Define the main class for the application.
     mainClass = 'chat.server.Server'
 }
+
+
+run {
+   standardInput = System.in
+}

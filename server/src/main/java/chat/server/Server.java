@@ -5,6 +5,8 @@ package chat.server;
 
 import java.util.Map;
 import java.util.HashMap;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 
 import java.io.IOException;
 
@@ -134,7 +136,12 @@ public class Server {
         
     }
     
+    public void stop() throws IOException {
+        comm.stop();
+    }
+
     public void run() {
+        Logger.debug("Server running");
         ClientMessage clientMessage;
         while(true) {
             try {
@@ -147,19 +154,59 @@ public class Server {
             } catch(ClosedConnectionException e) {
                 int uid = e.getUid();
                 handleUserLogout(uid);
+            } catch(ServerStopException e) {
+                Logger.debug("Selector closed");
+                break;
             } catch(IOException e) {
                 Logger.error("Error handling client request");
                 Logger.error(e.getMessage());
                 System.err.println(e.getStackTrace());
             }
+            
         }
     }
     
     public static void main(String[] args) {
+
+        class ServerThread extends Thread {
+            Server server;
+
+            ServerThread() throws IOException {
+                this.server = new Server(8080);;
+            }
+
+            @Override
+            public void run() { 
+                server.run();
+            }
+
+            public void stopServer() throws IOException {           
+                server.stop();
+            }
+        }
+
+
         try {
-            Server server = new Server(8080);
-            server.run();
-        } catch(IOException e) {
+            ServerThread server = new ServerThread();
+            server.start();
+
+            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+            
+            String line;
+            while(true) {
+                System.out.println("Enter 'exit' to stop server");
+                line = reader.readLine();
+                if(line.equals("exit")) {
+                    Logger.info("Stopping server");
+                    server.stopServer();
+                    server.join();
+                    break;
+                }
+            }
+
+        } catch(InterruptedException e) {
+        }
+        catch(IOException e) {
             System.err.println(e);
         }
     }

@@ -7,10 +7,12 @@ import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.net.InetSocketAddress;
 import java.util.*;
+
 import java.io.*;
 
 import chat.common.util.*;
 import chat.common.exception.ClosedConnectionException;
+import chat.common.exception.ServerStopException;
 
 class Communication {
     private static Selector selector;
@@ -85,12 +87,19 @@ class Communication {
         tcp.writeToChannel(socket, message);
     }
 
+    void stop() throws IOException {
+        selector.close();
+    }
     
-    ClientMessage getClientRequest() throws ClosedConnectionException, IOException  {
+    ClientMessage getClientRequest() throws ClosedConnectionException, ServerStopException, IOException  {
         while(true) {
             
             selector.select();
             
+            if(!selector.isOpen()) {
+                throw new ServerStopException();
+            }
+
             Set<SelectionKey> selectedKeys = selector.selectedKeys();
             Iterator<SelectionKey> iter = selectedKeys.iterator();
 
