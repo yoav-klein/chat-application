@@ -1,9 +1,10 @@
 
 package chat.integration;
 
-import chat.client.*;
-
 import java.io.IOException;
+
+import chat.client.Client;
+import chat.client.MockInterface;
 
 
 class ClientThread extends Thread {
