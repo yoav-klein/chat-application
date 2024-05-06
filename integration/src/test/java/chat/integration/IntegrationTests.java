@@ -13,7 +13,9 @@ import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestMethodOrder;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.TypeFactory;
 
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.junit.jupiter.api.Order;
@@ -33,7 +35,9 @@ class IntegrationTests {
     @BeforeAll
     void init() throws IOException {
         ServerThread server = new ServerThread(8080);
-        server.run();
+        server.start();
+
+        this.serverThread = server;
 
         MockPerson avi = new MockPerson("Avi");
         MockPerson benny = new MockPerson("Benny");
@@ -41,72 +45,191 @@ class IntegrationTests {
         this.avi = avi;
         this.benny = benny;
         
-    }   
+    }
 
+    @AfterAll
+    void tearDown() {
+        serverThread.stopServer();
+    }
 
     @Test
     @Order(1) 
     void testLogin() {
         avi.logIn();
         benny.logIn();
-
+        
         StatusPayload aviStatus = avi.getStatusPayload();
         StatusPayload bennyStatus = benny.getStatusPayload();
-
+        
         assert(aviStatus.status == StatusMessageType.SUCCESS);
         assert(bennyStatus.status == StatusMessageType.SUCCESS);
     }     
-
+    
     @Test
     @Order(2)
     void testSendMessageToUser() {
         Map<Integer, Object> values = new HashMap<>();
         values.put(0, "Avi");
         values.put(1, "Hey");
-
+        
         benny.setRequest("Send a message to a user", values);
 
         StatusPayload bennyStatus = benny.getStatusPayload();
         assert(bennyStatus.status == StatusMessageType.SUCCESS);
-
+        
         ChatPayload aviChat = avi.getChatPayload();
         assert(aviChat.from.equals("Benny"));
         assert(aviChat.to.equals("Avi"));
         assert(aviChat.message.equals("Hey"));
     }
-
+    
     @Test
     @Order(3)
     void testCreateGroup() {
         Map<Integer, Object> values = new HashMap<>();
         values.put(0, "Family");
-
+        
         avi.setRequest("Create a group", values);
-
+        
         StatusPayload aviStatus = avi.getStatusPayload();
         assert(aviStatus.status == StatusMessageType.SUCCESS);
     }
-
+    
     @Test
     @Order(4)
     void testListUsersInGroup() {
         Map<Integer, Object> values = new HashMap<>();
         values.put(0, "Family");
-
+        
         avi.setRequest("List users in a group", values);
-
+        
         StatusPayload aviStatus = avi.getStatusPayload();
         assert(aviStatus.status == StatusMessageType.SUCCESS);
-        String message = avi.getStatusPayload().message;
+
+        String message = aviStatus.message;
         
         ObjectMapper mapper = new ObjectMapper();
-        List users = null;
+        List<String> users = null;
         try {
-            users = mapper.readValue(message, List.class);
+            users = mapper.readValue(message, TypeFactory.defaultInstance().constructCollectionType(List.class, String.class));
         } catch (IOException e) {
             e.printStackTrace();
         }
         assert(users.size() == 1);
         assert(users.get(0).equals("Avi"));
     }
+
+    @Test
+    @Order(5)
+    void testJoinGroup() {
+        Map<Integer, Object> values = new HashMap<>();
+        values.put(0, "Family");
+        
+        benny.setRequest("Join a group", values);
+        
+        StatusPayload status = benny.getStatusPayload();
+        assert(status.status == StatusMessageType.SUCCESS);
+
+    }
+
+    @Test
+    @Order(6)
+    void testListUsersInGroup2() {
+        Map<Integer, Object> values = new HashMap<>();
+        values.put(0, "Family");
+        
+        avi.setRequest("List users in a group", values);
+        
+        StatusPayload aviStatus = avi.getStatusPayload();
+        assert(aviStatus.status == StatusMessageType.SUCCESS);
+
+        String message = aviStatus.message;
+        
+        ObjectMapper mapper = new ObjectMapper();
+        List<String> users = null;
+        try {
+            users = mapper.readValue(message, TypeFactory.defaultInstance().constructCollectionType(List.class, String.class));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        assert(users.size() == 2);
+        assert(users.get(0).equals("Avi"));
+        assert(users.get(1).equals("Benny"));
+    }
+
+    @Test
+    @Order(7)
+    void testSendMessageToGroup() {
+        Map<Integer, Object> values = new HashMap<>();
+        values.put(0, "Family");
+        values.put(1, "Hey");
+        
+        avi.setRequest("Send a message to a group", values);
+        
+        StatusPayload aviStatus = avi.getStatusPayload();
+        assert(aviStatus.status == StatusMessageType.SUCCESS);
+        
+        ChatPayload bennyChat = benny.getChatPayload();
+        assert(bennyChat.from.equals("Avi"));
+        assert(bennyChat.to.equals("Family"));
+        assert(bennyChat.message.equals("Hey"));
+    }
+
+    @Test
+    @Order(8)
+    void testLeaveGroup() {
+        Map<Integer, Object> values = new HashMap<>();
+        values.put(0, "Family");
+        
+        benny.setRequest("Leave a group", values);
+        
+        StatusPayload status = benny.getStatusPayload();
+        assert(status.status == StatusMessageType.SUCCESS);
+    }
+
+    @Test
+    @Order(9)
+    void testListUsersInGroup3() {
+        Map<Integer, Object> values = new HashMap<>();
+        values.put(0, "Family");
+        
+        avi.setRequest("List users in a group", values);
+        
+        StatusPayload aviStatus = avi.getStatusPayload();
+        assert(aviStatus.status == StatusMessageType.SUCCESS);
+
+        String message = aviStatus.message;
+        
+        ObjectMapper mapper = new ObjectMapper();
+        List<String> users = null;
+        try {
+            users = mapper.readValue(message, TypeFactory.defaultInstance().constructCollectionType(List.class, String.class));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        assert(users.size() == 1);
+        assert(users.get(0).equals("Avi"));
+    }
+
+    @Test
+    @Order(10)
+    void testListGroups() {
+        avi.setRequest("List groups you are in", new HashMap<>());
+        
+        StatusPayload aviStatus = avi.getStatusPayload();
+        assert(aviStatus.status == StatusMessageType.SUCCESS);
+
+        String message = aviStatus.message;
+        
+        ObjectMapper mapper = new ObjectMapper();
+        List<String> groups = null;
+        try {
+            groups = mapper.readValue(message, TypeFactory.defaultInstance().constructCollectionType(List.class, String.class));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        assert(groups.size() == 1);
+        assert(groups.get(0).equals("Family"));
+    }
+     
 }

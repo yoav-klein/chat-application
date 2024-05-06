@@ -18,6 +18,10 @@ class ServerThread extends Thread {
     }
 
     void stopServer() {
-        server.stop();
+        try {          
+            server.stop();
+        } catch(IOException e) {
+            System.err.println(e);
+        }
     }
 }
