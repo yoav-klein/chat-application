@@ -20,4 +20,8 @@ class ClientThread extends Thread {
             System.err.println(e);
         }
     }
+
+    public void stopClient() {
+        mockInterface.setRequest("Stop client", null);
+    }
 }

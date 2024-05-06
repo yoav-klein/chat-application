@@ -28,6 +28,10 @@ class MockPerson {
         
     }
 
+    void close() {
+        client.stopClient();
+    }
+
     StatusPayload getStatusPayload() {
         return mockInterface.getStatusPayload();
     }

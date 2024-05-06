@@ -57,6 +57,7 @@ public class Client {
         requestManager.addOption(new ListGroupsOption());
         requestManager.addOption(new ListUsersInGroupOption());
         requestManager.addOption(new LeaveGroupOption());
+        requestManager.addOption(new StopClientOption());
         return requestManager;
     }
     
@@ -102,6 +103,12 @@ public class Client {
             while(true) {
 
                 Request request = userInterface.getRequest();
+
+                if(request.getType() == RequestType.STOP_CLIENT) {
+                    serverThread.stopRunning();
+                    Logger.info("Client stopped");
+                    break;
+                }
                 
                 if(serverThread.isConnectionClosed()) {
                     System.out.println("Server closed connection");
@@ -130,7 +137,9 @@ public class Client {
             
         } catch(InterruptedException e) {
            Logger.error("Interrupted: " + e);
-        } 
+        } catch(IOException e) {
+            Logger.warning("IOException in client run(): " + e);
+        }
 
     }
 

@@ -49,7 +49,16 @@ class IntegrationTests {
 
     @AfterAll
     void tearDown() {
+        benny.close();
+        avi.close();
+
         serverThread.stopServer();
+        try {
+            serverThread.join();
+        } catch (InterruptedException e) {}
+
+        
+
     }
 
     @Test

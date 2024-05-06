@@ -24,7 +24,11 @@ class Communication {
     }
 
     String readFromServer() throws ClosedConnectionException, IOException {
-        return tcp.readFromChannel(this.channel);
+        try {
+            return tcp.readFromChannel(this.channel);
+        } catch (IOException e) {
+            throw e;
+        }
     }
 
     void close() throws IOException {

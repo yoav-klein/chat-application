@@ -73,7 +73,7 @@ class ServerThread extends Thread {
             Logger.error(e.getMessage());
             return;
         } catch(IOException e) {
-            Logger.error(e.getMessage());
+            Logger.error("IOException in ServerThread: " + e.getMessage());
             shouldStop = true;
             return;
         } 

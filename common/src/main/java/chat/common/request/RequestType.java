@@ -9,5 +9,6 @@ public enum RequestType {
     JOIN_GROUP,
     LIST_USERS_IN_GROUP,
     LIST_GROUPS_OF_USER,
-    LEAVE_GROUP
+    LEAVE_GROUP,
+    STOP_CLIENT
 }
